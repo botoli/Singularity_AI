@@ -7,24 +7,45 @@ import History from './components/History';
 import PromptTemplates from './components/PromptTemplates';
 
 const getApiConfig = () => {
+  // Увеличиваем задержку до 500ms для асинхронной загрузки конфига
   return new Promise((resolve) => {
     setTimeout(() => {
-      // Используем прокси вместо прямого вызова API
-      console.log('🔧 Using Vercel API proxy');
+      // Проверяем window.APP_CONFIG, но добавляем fallback на import.meta.env
+      const apiKey = window.APP_CONFIG?.GROQ_API_KEY || import.meta.env.VITE_GROQ_API_KEY;
+      const baseURL =
+        window.APP_CONFIG?.GROQ_BASE_URL ||
+        import.meta.env.VITE_GROQ_BASE_URL ||
+        'https://api.groq.com/openai/v1';
+      const useProxy =
+        window.APP_CONFIG?.USE_PROXY || import.meta.env.VITE_USE_PROXY === 'true' || false;
+
+      console.log('🔧 Final API Config Check:', {
+        hasAPP_CONFIG: !!window.APP_CONFIG,
+        apiKey: apiKey ? '***' + apiKey.slice(-4) : 'MISSING',
+        baseURL,
+        useProxy,
+      });
+
+      if (!apiKey) {
+        alert(
+          '❌ КРИТИЧЕСКАЯ ОШИБКА: API ключ не загружен. Проверьте переменную VITE_GROQ_API_KEY в .env или конфигурацию сервера.',
+        );
+      }
 
       resolve({
-        baseURL: '', // Пустой, потому что запросы идут на тот же домен
-        endpoint: '/api/groq',
+        baseURL: baseURL,
+        endpoint: useProxy ? '' : '/chat/completions',
         model: 'llama-3.3-70b-versatile',
-        apiKey: 'proxy', // Не используется, ключ на сервере
-        useProxy: true,
+        apiKey: apiKey,
+        useProxy: useProxy,
         headers: {
           'Content-Type': 'application/json',
         },
       });
-    }, 100);
+    }, 500);
   });
 };
+
 function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [apiConfig, setApiConfig] = useState(null);
