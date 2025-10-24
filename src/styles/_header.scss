@@ -1,0 +1,118 @@
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: rgba(20, 20, 30, 0.9);
+  backdrop-filter: blur(15px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+
+  @media (max-width: 768px) {
+    padding: 10px 16px;
+  }
+}
+
+.header-logo a {
+  font-size: 28px;
+  font-weight: 700;
+  color: #fdfdfe;
+  text-shadow: 0px 0px 5px #3b82f6, 0px 0px 10px #3b82f6, 0px 0px 10px #3b82f6, 0px 0px 20px #3b82f6;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.2s ease;
+  &:hover {
+    text-shadow: 0px 0px 5px #eb3802, 0px 0px 10px #970000, 0px 0px 10px #ff0000,
+      0px 0px 20px #ff0000;
+    transform: scale(1.05);
+  }
+
+  @media (max-width: 768px) {
+    font-size: 24px;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 20px;
+  }
+}
+
+.header-nav {
+  display: flex;
+  gap: 20px;
+
+  a {
+    font-size: 16px;
+    font-weight: 500;
+    color: #e0e0ff;
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.3s ease, color 0.3s ease, transform 0.2s ease;
+
+    &:hover {
+      background: rgba(59, 130, 246, 0.613);
+      color: #ffff;
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+      font-size: 14px;
+      padding: 10px 16px;
+      text-align: center;
+    }
+  }
+
+  &.open {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    background: rgba(20, 20, 30, 0.95);
+    padding: 16px;
+    border-radius: 0 0 12px 12px;
+    animation: slideIn 0.3s ease-out;
+    gap: 10px;
+  }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.mobile-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #e0e0ff;
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.3s ease;
+  padding: 4px;
+  border-radius: 4px;
+
+  &:hover {
+    color: #3b82f6;
+    transform: scale(1.1);
+    background: rgba(59, 130, 246, 0.1);
+  }
+
+  @media (max-width: 768px) {
+    display: block;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

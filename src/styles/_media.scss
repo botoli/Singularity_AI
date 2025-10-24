@@ -1,0 +1,270 @@
+@media (max-width: 1024px) {
+  .main_text {
+    font-size: 42px;
+  }
+
+  .input-wrapper,
+  .input-wrapper_chat {
+    width: calc(100% - 40px);
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 10px 16px;
+  }
+
+  .header-logo {
+    font-size: 20px;
+  }
+
+  .header-nav {
+    display: none;
+
+    &.open {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background: rgba(20, 20, 30, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 16px;
+      border-radius: 0 0 12px 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  .mobile-toggle {
+    display: block;
+  }
+
+  .header-nav a {
+    margin: 8px 0;
+    font-size: 16px;
+    text-align: center;
+    padding: 12px;
+  }
+
+  .main_text {
+    font-size: 32px;
+    margin: 60px 20px 20px;
+  }
+
+  .brand-text {
+    font-size: 50px !important;
+  }
+
+  .subtitle {
+    font-size: 20px !important;
+  }
+
+  .home-description {
+    font-size: 16px !important;
+    padding: 0 10px;
+  }
+
+  .input-wrapper-home,
+  .input-wrapper_chat {
+    width: calc(100% - 32px);
+    bottom: 20px;
+    padding: 12px;
+  }
+
+  .sent_message,
+  .ai_message {
+    max-width: 90%;
+    margin: 8px 16px;
+  }
+
+  .chat-container {
+    padding: 80px 16px 120px;
+    height: calc(100vh - 150px);
+  }
+
+  .api-key-input {
+    width: calc(100% - 32px);
+  }
+
+  .tabs {
+    top: 70px;
+    left: 16px;
+    right: 16px;
+    transform: none;
+    width: calc(100% - 32px);
+  }
+
+  .main-text-div {
+    margin-top: 80px;
+    padding: 20px;
+    border-radius: 30px;
+  }
+
+  .history-container {
+    margin: 80px auto 30px;
+    padding: 0 16px;
+  }
+
+  .chat-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .chat-info {
+    width: 100%;
+  }
+
+  .chat-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-logo {
+    font-size: 18px;
+  }
+
+  .header-nav a {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .main_text {
+    font-size: 28px;
+    padding: 0 10px;
+  }
+
+  .brand-text {
+    font-size: 36px !important;
+  }
+
+  .subtitle {
+    font-size: 18px !important;
+  }
+
+  .home-description {
+    font-size: 14px !important;
+  }
+
+  .input_prompt {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .send {
+    width: 44px;
+    height: 44px;
+  }
+
+  .send-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sent_message,
+  .ai_message {
+    max-width: 95%;
+    margin: 6px 10px;
+  }
+
+  .ai_message_text {
+    max-height: 300px;
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .chat-container {
+    padding: 70px 12px 100px;
+  }
+
+  .input-wrapper_chat {
+    bottom: 60px;
+    padding: 10px;
+  }
+
+  .chat-controls {
+    padding: 10px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .new-chat-button,
+  .clear-chat-button {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .main-text-div {
+    margin-top: 60px;
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .history-container {
+    margin: 60px auto 20px;
+  }
+
+  .chat-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .chat-date,
+  .chat-message-count {
+    font-size: 12px;
+  }
+
+  .error-message {
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    text-align: center;
+    padding: 12px;
+    font-size: 14px;
+    z-index: 2000;
+  }
+
+  .preview-container {
+    padding: 12px;
+
+    iframe {
+      height: 250px;
+    }
+  }
+}
+
+@media (max-width: 360px) {
+  .header {
+    padding: 8px 12px;
+  }
+
+  .header-logo {
+    font-size: 16px;
+  }
+
+  .main_text {
+    font-size: 24px;
+  }
+
+  .brand-text {
+    font-size: 32px !important;
+  }
+
+  .input-wrapper-home,
+  .input-wrapper_chat {
+    width: calc(100% - 24px);
+    margin: 0 12px;
+  }
+
+  .chat-container {
+    padding: 60px 8px 80px;
+  }
+}

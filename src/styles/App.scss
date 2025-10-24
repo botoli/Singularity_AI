@@ -1,0 +1,10 @@
+// Добавляем импорт для templates
+@use 'templates';
+
+// Остальные импорты остаются
+@use 'base';
+@use 'header';
+@use 'main';
+@use 'chat';
+@use 'media';
+@use 'background';
