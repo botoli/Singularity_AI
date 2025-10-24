@@ -10,17 +10,23 @@ const getApiConfig = () => {
   return new Promise((resolve) => {
     setTimeout(() => {
       const apiKey = window.APP_CONFIG?.GROQ_API_KEY || import.meta.env.VITE_GROQ_API_KEY;
-      const baseURL = 'https://api.groq.com/openai/v1';
-
-      // Для мобильных устройств используем прямое подключение
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent,
       );
 
-      console.log('🔧 Mobile Config:', {
-        isMobile: isMobile,
+      // Для мобильных используем proxy, для десктопа - прямое подключение
+      const useProxy = isMobile;
+      const baseURL = useProxy
+        ? `${window.location.origin}/api/proxy`
+        : 'https://api.groq.com/openai/v1';
+
+      console.log('🔧 Mobile API Config:', {
+        userAgent: navigator.userAgent,
+        isMobile,
+        useProxy,
         apiKey: apiKey ? '***' + apiKey.slice(-4) : 'MISSING',
         baseURL,
+        currentOrigin: window.location.origin,
       });
 
       if (!apiKey) {
@@ -31,10 +37,10 @@ const getApiConfig = () => {
 
       resolve({
         baseURL: baseURL,
-        endpoint: '/chat/completions',
+        endpoint: useProxy ? '' : '/chat/completions',
         model: 'llama-3.3-70b-versatile',
         apiKey: apiKey,
-        useProxy: false, // Отключаем proxy для мобильных
+        useProxy: useProxy,
         headers: {
           'Content-Type': 'application/json',
         },

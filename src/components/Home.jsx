@@ -38,17 +38,40 @@ function Home({ apiConfig, serverConfig }) {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // Увеличиваем таймаут
 
-      const response = await fetch(`${apiConfig.baseURL}${apiConfig.endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiConfig.apiKey}`,
-        },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal,
-      });
+      let response;
+
+      if (apiConfig.useProxy) {
+        // Используем proxy для мобильных
+        const proxyBody = {
+          url: 'https://api.groq.com/openai/v1/chat/completions',
+          body: requestBody,
+          headers: {
+            Authorization: `Bearer ${apiConfig.apiKey}`,
+          },
+        };
+
+        response = await fetch(apiConfig.baseURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(proxyBody),
+          signal: controller.signal,
+        });
+      } else {
+        // Прямое подключение для десктопа
+        response = await fetch(`${apiConfig.baseURL}${apiConfig.endpoint}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiConfig.apiKey}`,
+          },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal,
+        });
+      }
 
       clearTimeout(timeoutId);
 
@@ -88,11 +111,9 @@ function Home({ apiConfig, serverConfig }) {
         errorMessage =
           'Превышено время ожидания ответа от сервера. Проверьте подключение к интернету.';
       } else if (error.message === 'Failed to fetch') {
-        errorMessage =
-          'Не удалось подключиться к серверу. Проверьте: 1) Интернет-соединение 2) Блокировку рекламы 3) VPN';
+        errorMessage = 'Не удалось подключиться к серверу. Проблема с интернет-соединением.';
       } else if (error.message.includes('CORS') || error.message.includes('cors')) {
-        errorMessage =
-          'Ошибка CORS. Попробуйте отключить блокировщик рекламы или использовать другое подключение.';
+        errorMessage = 'Ошибка доступа. Пожалуйста, попробуйте обновить страницу.';
       } else if (error.message.includes('401')) {
         errorMessage = 'Неверный API-ключ. Проверьте настройки API.';
       } else if (error.message.includes('429')) {

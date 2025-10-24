@@ -113,20 +113,16 @@ function MainChat({ apiConfig, serverConfig }) {
   };
 
   // Send message to API
+  // Send message to API
   const sendMessage = async (retryCount = 0) => {
     if (!input.trim() || isLoading) return;
 
     // ДОБАВЬ ЭТУ ПРОВЕРКУ
-    if (!apiConfig.apiKey || apiConfig.apiKey.includes('VITE_GROQ_API_KEY')) {
+    if (!apiConfig?.apiKey || apiConfig.apiKey.includes('VITE_GROQ_API_KEY')) {
       setError('Ошибка: API ключ не настроен. Проверьте конфигурацию.');
       return;
     }
-    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-      navigator.userAgent,
-    );
-    if (isMobile) {
-      console.log('📱 Mobile device detected');
-    }
+
     const userMessage = {
       role: 'user',
       content: input.trim(),
@@ -162,31 +158,71 @@ function MainChat({ apiConfig, serverConfig }) {
       };
 
       console.log('API Request:', JSON.stringify(requestBody, null, 2));
+      console.log('API Config:', {
+        useProxy: apiConfig.useProxy,
+        baseURL: apiConfig.baseURL,
+        endpoint: apiConfig.endpoint,
+      });
 
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // Увеличиваем таймаут
 
-      const response = await fetch(`${apiConfig.baseURL}${apiConfig.endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiConfig.apiKey}`,
-        },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal,
-      });
+      let response;
+
+      if (apiConfig.useProxy) {
+        // Используем proxy для мобильных
+        const proxyBody = {
+          url: 'https://api.groq.com/openai/v1/chat/completions',
+          body: requestBody,
+          headers: {
+            Authorization: `Bearer ${apiConfig.apiKey}`,
+          },
+        };
+
+        console.log('Using proxy request:', proxyBody);
+
+        response = await fetch(apiConfig.baseURL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(proxyBody),
+          signal: controller.signal,
+        });
+      } else {
+        // Прямое подключение для десктопа
+        console.log('Using direct request to:', `${apiConfig.baseURL}${apiConfig.endpoint}`);
+
+        response = await fetch(`${apiConfig.baseURL}${apiConfig.endpoint}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiConfig.apiKey}`,
+          },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal,
+        });
+      }
 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('API Error Response:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorText: errorText,
+        });
+
         if (retryCount < 2) {
+          console.log(`Retrying... attempt ${retryCount + 1}`);
           return sendMessage(retryCount + 1);
         }
         throw new Error(`API ошибка ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('API Success Response:', data);
 
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         throw new Error('Неверный формат ответа от API');
@@ -218,8 +254,7 @@ function MainChat({ apiConfig, serverConfig }) {
         errorMessage =
           'Превышено время ожидания ответа от сервера. Проверьте подключение к интернету.';
       } else if (error.message === 'Failed to fetch') {
-        errorMessage =
-          'Не удалось подключиться к серверу. Проверьте: 1) Интернет-соединение 2) Блокировку рекламы 3) VPN';
+        errorMessage = 'Не удалось подключиться к серверу. Проверьте интернет-соединение.';
       } else if (error.message.includes('CORS') || error.message.includes('cors')) {
         errorMessage =
           'Ошибка CORS. Попробуйте отключить блокировщик рекламы или использовать другое подключение.';
@@ -227,12 +262,25 @@ function MainChat({ apiConfig, serverConfig }) {
         errorMessage = 'Неверный API-ключ. Проверьте настройки API.';
       } else if (error.message.includes('429')) {
         errorMessage = 'Превышен лимит запросов. Попробуйте позже.';
+      } else if (error.message.includes('500')) {
+        errorMessage = 'Внутренняя ошибка сервера. Попробуйте еще раз.';
       } else {
         errorMessage = `Ошибка: ${error.message}`;
       }
 
       setError(errorMessage);
-      // ... остальной код
+
+      const errorMessageObj = {
+        role: 'assistant',
+        content: `Ошибка: ${error.message}`,
+        id: Date.now() + 1,
+      };
+
+      const errorMessages = [...updatedMessages, errorMessageObj];
+      setMessages(errorMessages);
+
+      // Auto-hide error after 5 seconds
+      setTimeout(() => setError(null), 5000);
     } finally {
       setIsLoading(false);
     }
