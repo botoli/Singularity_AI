@@ -422,8 +422,12 @@
 }
 
 .welcome-message {
+  border-radius: 20px;
+  background-color: rgba(0, 0, 0, 0.096);
+  backdrop-filter: blur(10px);
   text-align: center;
-  color: rgba(255, 255, 255, 0.7);
+  color: #fdfdfe;
+  text-shadow: 0px 0px 5px #3b82f6, 0px 0px 10px #3b82f6, 0px 0px 10px #3b82f6, 0px 0px 20px #3b82f6;
   padding: 60px 20px;
   font-size: 16px;
   line-height: 1.5;

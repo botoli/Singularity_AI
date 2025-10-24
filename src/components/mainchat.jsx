@@ -689,7 +689,7 @@ function MainChat({ apiConfig, serverConfig }) {
         {activeTab === 'chat' ? (
           messages.length === 0 ? (
             <div className="welcome-message">
-              👋 Привет! Опиши любой элемент дизайна, и я сгенерирую для него CSS или HTML код.
+              Привет! Опиши любой элемент дизайна, и я сгенерирую для него CSS или HTML код.
             </div>
           ) : (
             <div className="messages-list">
