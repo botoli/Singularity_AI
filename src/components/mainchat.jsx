@@ -160,13 +160,13 @@ function MainChat({ apiConfig, serverConfig }) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-      const response = await fetch('/api/groq-proxy', {
+      const response = await fetch(`${apiConfig.baseURL}${apiConfig.endpoint}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          endpoint: '/chat/completions',
-          payload: requestBody,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiConfig.apiKey}`,
+        },
+        body: JSON.stringify(requestBody),
         signal: controller.signal,
       });
 
