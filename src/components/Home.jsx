@@ -41,11 +41,13 @@ function Home({ apiConfig, serverConfig }) {
     };
 
     try {
+      // Простой fetch без проверки API ключа
       const response = await fetch(`${apiConfig.baseURL}${apiConfig.endpoint}`, {
         method: 'POST',
-        headers: apiConfig.headers,
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(requestBody),
-        mode: 'cors',
       });
 
       if (!response.ok) {

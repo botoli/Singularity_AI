@@ -9,25 +9,17 @@ import PromptTemplates from './components/PromptTemplates';
 const getApiConfig = () => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      // Используем Environment Variables из Vercel
-      const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-
-      console.log('🔧 API Config loaded from environment variables');
-
-      if (!apiKey) {
-        console.error('❌ VITE_GROQ_API_KEY is not set in environment variables');
-        alert('Ошибка: API ключ не настроен. Добавьте VITE_GROQ_API_KEY в настройки Vercel.');
-      }
+      // Используем прокси вместо прямого вызова API
+      console.log('🔧 Using Vercel API proxy');
 
       resolve({
-        baseURL: 'https://api.groq.com/openai/v1',
-        endpoint: '/chat/completions',
+        baseURL: '', // Пустой, потому что запросы идут на тот же домен
+        endpoint: '/api/groq',
         model: 'llama-3.3-70b-versatile',
-        apiKey: apiKey,
-        useProxy: false,
+        apiKey: 'proxy', // Не используется, ключ на сервере
+        useProxy: true,
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
         },
       });
     }, 100);
