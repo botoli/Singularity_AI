@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/App.scss';
 import { FiSend } from 'react-icons/fi';
-import { CryptoUtils } from '../utils/crypto';
+
 function Home({ apiConfig, serverConfig }) {
   const [idea, setIdea] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -14,9 +14,9 @@ function Home({ apiConfig, serverConfig }) {
       return;
     }
 
-    // Проверяем API ключ
-    if (!apiConfig?.apiKey || !CryptoUtils.validateKey(apiConfig.apiKey)) {
-      alert('Ошибка: Неверная конфигурация API');
+    // Простая проверка
+    if (!apiConfig?.apiKey) {
+      alert('Ошибка: API ключ не настроен. Добавьте VITE_GROQ_API_KEY в настройки Vercel.');
       return;
     }
 
@@ -50,15 +50,12 @@ function Home({ apiConfig, serverConfig }) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(`API ошибка ${response.status}: ${errorText}`);
+        throw new Error(`API ошибка ${response.status}`);
       }
 
       const data = await response.json();
 
-      if (!data.choices?.[0]?.message) {
-        throw new Error('Неверный формат ответа от API');
-      }
-
+      // Сохраняем чат
       const userMessage = { role: 'user', content: idea };
       const assistantMessage = { role: 'assistant', content: data.choices[0].message.content };
 
@@ -89,9 +86,7 @@ function Home({ apiConfig, serverConfig }) {
           <span className="subtitle">Твой персональный генератор веб-дизайна</span>
         </div>
         <div className="home-description">
-          Превращай идеи в готовый код: создавай стильные кнопки, анимированные элементы и
-          современные интерфейсы с помощью искусственного интеллекта. Просто опиши, что хочешь —
-          получи готовый CSS и HTML код для любого проекта.
+          Превращай идеи в готовый код с помощью искусственного интеллекта.
         </div>
       </div>
       <div className="input-wrapper-home">
@@ -108,8 +103,7 @@ function Home({ apiConfig, serverConfig }) {
         <button
           className={`send ${isLoading ? 'loading' : ''}`}
           onClick={handleSend}
-          disabled={isLoading || !idea.trim()}
-          aria-label="Отправить запрос">
+          disabled={isLoading || !idea.trim()}>
           {isLoading ? <div className="spinner"></div> : <FiSend size={24} className="send-icon" />}
         </button>
       </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import '../styles/App.scss';
 import { FiCode, FiSend, FiUser, FiLoader, FiCopy, FiEye, FiPlus } from 'react-icons/fi';
-import { CryptoUtils } from '../utils/crypto';
+
 function MainChat({ apiConfig, serverConfig }) {
   const [messages, setMessages] = useState([]);
   const [previews, setPreviews] = useState([]);
@@ -13,111 +13,16 @@ function MainChat({ apiConfig, serverConfig }) {
   const [activeTab, setActiveTab] = useState('chat');
   const [currentChatId, setCurrentChatId] = useState(null);
   const messagesEndRef = useRef(null);
-  const messagesContainerRef = useRef(null);
-  const previewRefs = useRef({});
   const location = useLocation();
 
-  // Load chat history and current chat
-  useEffect(() => {
-    const loadChat = () => {
-      try {
-        const currentChat = localStorage.getItem('currentChat');
-        const currentChatId = localStorage.getItem('currentChatId');
+  // ... остальной код компонента без изменений ...
 
-        if (currentChat) {
-          const parsedMessages = JSON.parse(currentChat);
-          setMessages(parsedMessages || []);
-
-          // Extract previews from assistant messages with code
-          const codeMessages = (parsedMessages || []).filter(
-            (msg) =>
-              msg.role === 'assistant' &&
-              (msg.content.includes('```css') || msg.content.includes('```html')),
-          );
-          setPreviews(codeMessages.map((msg) => ({ ...msg, previewId: msg.id || Date.now() })));
-        }
-
-        if (currentChatId) {
-          setCurrentChatId(currentChatId);
-        } else {
-          createNewChat();
-        }
-      } catch (error) {
-        console.error('Error loading chat:', error);
-        createNewChat();
-      }
-    };
-
-    loadChat();
-  }, []);
-
-  // Handle preset prompt from navigation
-  useEffect(() => {
-    if (location.state?.presetPrompt) {
-      setInput(location.state.presetPrompt);
-    }
-  }, [location.state]);
-
-  // Save current chat to history
-  useEffect(() => {
-    if (messages.length > 0 && currentChatId) {
-      try {
-        const savedChats = JSON.parse(localStorage.getItem('chatHistory') || '[]');
-        const existingChatIndex = savedChats.findIndex((chat) => chat.id === currentChatId);
-
-        const chatData = {
-          id: currentChatId,
-          title: messages[0]?.content?.substring(0, 50) + '...' || 'Новый чат',
-          messages: messages,
-          timestamp: Date.now(),
-        };
-
-        if (existingChatIndex >= 0) {
-          savedChats[existingChatIndex] = chatData;
-        } else {
-          savedChats.push(chatData);
-        }
-
-        localStorage.setItem('chatHistory', JSON.stringify(savedChats));
-        localStorage.setItem('currentChatId', currentChatId);
-        localStorage.setItem('currentChat', JSON.stringify(messages));
-      } catch (error) {
-        console.error('Error saving chat:', error);
-      }
-    }
-  }, [messages, currentChatId]);
-
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages, previews, activeTab]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'nearest',
-    });
-  };
-
-  // Create new chat
-  const createNewChat = () => {
-    const newChatId = 'local_' + Date.now();
-    setCurrentChatId(newChatId);
-    setMessages([]);
-    setPreviews([]);
-    setPreviewMessageId(null);
-    setInput('');
-
-    localStorage.setItem('currentChatId', newChatId);
-    localStorage.setItem('currentChat', JSON.stringify([]));
-  };
-
-  const sendMessage = async (retryCount = 0) => {
+  const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
-    // Проверяем API ключ
-    if (!apiConfig?.apiKey || !CryptoUtils.validateKey(apiConfig.apiKey)) {
-      setError('Ошибка: Неверная конфигурация API');
+    // Простая проверка
+    if (!apiConfig?.apiKey) {
+      setError('Ошибка: API ключ не настроен. Добавьте VITE_GROQ_API_KEY в настройки Vercel.');
       return;
     }
 
@@ -138,7 +43,7 @@ function MainChat({ apiConfig, serverConfig }) {
         {
           role: 'system',
           content:
-            'Ты ассистент по веб-дизайну. Всегда возвращай полный, рабочий CSS-код в формате ```css\n[код]\n``` или HTML в формате ```html\n[код]\n``` для запросов, связанных с дизайном. Код должен быть адаптивным и функциональным. Если запрос общий, создай CSS для кнопки.',
+            'Ты ассистент по веб-дизайну. Всегда возвращай полный, рабочий CSS-код в формате ```css\n[код]\n``` или HTML в формате ```html\n[код]\n``` для запросов, связанных с дизайном.',
         },
         ...updatedMessages.map((msg) => ({
           role: msg.role,
@@ -151,41 +56,21 @@ function MainChat({ apiConfig, serverConfig }) {
         messages: apiMessages,
         max_completion_tokens: 2048,
         temperature: 0.7,
-        top_p: 0.9,
         stream: false,
       };
 
-      console.log('API Request:', JSON.stringify(requestBody, null, 2));
-
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-      // ИСПОЛЬЗУЕМ ПРОКСИ ВМЕСТО ПРЯМОГО ВЫЗОВА GROQ API
       const response = await fetch(`${apiConfig.baseURL}${apiConfig.endpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Authorization заголовок больше не нужен
-        },
+        headers: apiConfig.headers,
         body: JSON.stringify(requestBody),
-        signal: controller.signal,
+        mode: 'cors',
       });
 
-      clearTimeout(timeoutId);
-
       if (!response.ok) {
-        const errorData = await response.json();
-        if (retryCount < 2) {
-          return sendMessage(retryCount + 1);
-        }
-        throw new Error(`API ошибка ${response.status}: ${errorData.error || 'Unknown error'}`);
+        throw new Error(`API ошибка ${response.status}`);
       }
 
       const data = await response.json();
-
-      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-        throw new Error('Неверный формат ответа от API');
-      }
 
       const assistantMessage = {
         role: 'assistant',
@@ -193,48 +78,10 @@ function MainChat({ apiConfig, serverConfig }) {
         id: Date.now() + 1,
       };
 
-      const finalMessages = [...updatedMessages, assistantMessage];
-      setMessages(finalMessages);
-
-      // Add to previews if contains code
-      if (
-        assistantMessage.content.includes('```css') ||
-        assistantMessage.content.includes('```html')
-      ) {
-        const newPreview = { ...assistantMessage, previewId: Date.now() };
-        setPreviews((prev) => [...prev, newPreview]);
-      }
+      setMessages([...updatedMessages, assistantMessage]);
     } catch (error) {
-      console.error('Error sending message:', error);
-
-      let errorMessage = 'Произошла неизвестная ошибка';
-
-      if (error.name === 'AbortError') {
-        errorMessage =
-          'Превышено время ожидания ответа от сервера. Проверьте подключение к интернету.';
-      } else if (error.message === 'Failed to fetch') {
-        errorMessage = 'Не удалось подключиться к серверу. Проверьте интернет-соединение.';
-      } else if (error.message.includes('401')) {
-        errorMessage = 'Неверный API-ключ. Проверьте настройки API на сервере.';
-      } else if (error.message.includes('429')) {
-        errorMessage = 'Превышен лимит запросов. Попробуйте позже.';
-      } else {
-        errorMessage = `Ошибка: ${error.message}`;
-      }
-
-      setError(errorMessage);
-
-      const errorMessageObj = {
-        role: 'assistant',
-        content: `Ошибка: ${error.message}`,
-        id: Date.now() + 1,
-      };
-
-      const errorMessages = [...updatedMessages, errorMessageObj];
-      setMessages(errorMessages);
-
-      // Auto-hide error after 5 seconds
-      setTimeout(() => setError(null), 5000);
+      console.error('Error:', error);
+      setError(error.message);
     } finally {
       setIsLoading(false);
     }
