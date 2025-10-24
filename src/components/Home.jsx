@@ -88,7 +88,11 @@ function Home({ apiConfig, serverConfig }) {
         errorMessage =
           'Превышено время ожидания ответа от сервера. Проверьте подключение к интернету.';
       } else if (error.message === 'Failed to fetch') {
-        errorMessage = 'Не удалось подключиться к серверу. Проверьте интернет-соединение.';
+        errorMessage =
+          'Не удалось подключиться к серверу. Проверьте: 1) Интернет-соединение 2) Блокировку рекламы 3) VPN';
+      } else if (error.message.includes('CORS') || error.message.includes('cors')) {
+        errorMessage =
+          'Ошибка CORS. Попробуйте отключить блокировщик рекламы или использовать другое подключение.';
       } else if (error.message.includes('401')) {
         errorMessage = 'Неверный API-ключ. Проверьте настройки API.';
       } else if (error.message.includes('429')) {

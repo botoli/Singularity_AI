@@ -7,37 +7,34 @@ import History from './components/History';
 import PromptTemplates from './components/PromptTemplates';
 
 const getApiConfig = () => {
-  // Увеличиваем задержку до 500ms для асинхронной загрузки конфига
   return new Promise((resolve) => {
     setTimeout(() => {
-      // Проверяем window.APP_CONFIG, но добавляем fallback на import.meta.env
       const apiKey = window.APP_CONFIG?.GROQ_API_KEY || import.meta.env.VITE_GROQ_API_KEY;
-      const baseURL =
-        window.APP_CONFIG?.GROQ_BASE_URL ||
-        import.meta.env.VITE_GROQ_BASE_URL ||
-        'https://api.groq.com/openai/v1';
-      const useProxy =
-        window.APP_CONFIG?.USE_PROXY || import.meta.env.VITE_USE_PROXY === 'true' || false;
+      const baseURL = 'https://api.groq.com/openai/v1';
 
-      console.log('🔧 Final API Config Check:', {
-        hasAPP_CONFIG: !!window.APP_CONFIG,
+      // Для мобильных устройств используем прямое подключение
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+        navigator.userAgent,
+      );
+
+      console.log('🔧 Mobile Config:', {
+        isMobile: isMobile,
         apiKey: apiKey ? '***' + apiKey.slice(-4) : 'MISSING',
         baseURL,
-        useProxy,
       });
 
       if (!apiKey) {
         alert(
-          '❌ КРИТИЧЕСКАЯ ОШИБКА: API ключ не загружен. Проверьте переменную VITE_GROQ_API_KEY в .env или конфигурацию сервера.',
+          '❌ КРИТИЧЕСКАЯ ОШИБКА: API ключ не загружен. Проверьте переменную VITE_GROQ_API_KEY в .env',
         );
       }
 
       resolve({
         baseURL: baseURL,
-        endpoint: useProxy ? '' : '/chat/completions',
+        endpoint: '/chat/completions',
         model: 'llama-3.3-70b-versatile',
         apiKey: apiKey,
-        useProxy: useProxy,
+        useProxy: false, // Отключаем proxy для мобильных
         headers: {
           'Content-Type': 'application/json',
         },
