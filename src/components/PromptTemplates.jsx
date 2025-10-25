@@ -11,6 +11,11 @@ import {
   FiX,
   FiMenu,
   FiGrid,
+  FiGlobe,
+  FiUser,
+  FiMail,
+  FiShoppingCart,
+  FiCreditCard,
 } from 'react-icons/fi';
 
 function PromptTemplates() {
@@ -20,581 +25,565 @@ function PromptTemplates() {
 
   const templates = [
     {
-      category: 'Кнопки',
-      icon: <FiTrendingUp />,
+      category: 'Лендинги',
+      icon: <FiGlobe />,
       items: [
         {
-          title: 'Неоновая кнопка',
-          prompt:
-            'Создай неоновую кнопку с glow эффектом для тёмной темы с плавной анимацией при наведении',
-          description: 'Кнопка с ярким неоновым свечением',
-          preview: `.btn-neon {
-  background: transparent;
-  color: #0ff;
-  border: 2px solid #0ff;
-  padding: 12px 24px;
-  font-size: 16px;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  transition: 0.3s;
-  text-transform: uppercase;
-  border-radius: 8px;
-  font-family: 'Roboto', sans-serif;
-}
+          title: 'Лендинг SaaS продукта',
+          prompt: `Создай современный лендинг для SaaS продукта с:
+- Герой-секцией с заголовком и CTA
+- Секцией преимуществ с иконками
+- Секцией цен с 3 тарифами
+- FAQ секцией
+- Футером с контактами
 
-.btn-neon:hover {
-  background: #0ff;
-  color: #000;
-  box-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
-}`,
-          type: 'css',
-        },
-        {
-          title: 'Градиентная кнопка',
-          prompt: 'Создай кнопку с плавным градиентом и hover эффектами, современный дизайн',
-          description: 'Современная кнопка с градиентом',
-          preview: `.btn-gradient {
-  background: linear-gradient(45deg, #667eea, #764ba2);
+Используй современный дизайн с градиентами, анимациями при скролле и адаптивную верстку.`,
+          description: 'Полноценный лендинг для SaaS продукта',
+          preview: `.hero-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: transform 0.3s, box-shadow 0.3s;
-  font-family: 'Roboto', sans-serif;
+  padding: 100px 20px;
+  text-align: center;
 }
 
-.btn-gradient:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-}`,
-          type: 'css',
-        },
-        {
-          title: '3D кнопка',
-          prompt: 'Создай 3D кнопку с эффектом нажатия и тенью',
-          description: 'Кнопка с 3D эффектом и анимацией нажатия',
-          preview: `.btn-3d {
-  background: #4CAF50;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  box-shadow: 0 4px #388E3C;
-  position: relative;
-  transition: all 0.1s;
-  cursor: pointer;
-  font-family: 'Roboto', sans-serif;
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 40px;
+  padding: 80px 20px;
 }
 
-.btn-3d:active {
-  box-shadow: 0 2px #388E3C;
-  transform: translateY(2px);
-}`,
-          type: 'css',
-        },
-        {
-          title: 'Кнопка с загрузкой',
-          prompt: 'Создай кнопку с анимацией загрузки при клике',
-          description: 'Кнопка с индикатором загрузки',
-          preview: `.btn-loading {
-  background: #2196F3;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  position: relative;
-  transition: all 0.3s;
-  font-family: 'Roboto', sans-serif;
-}
-
-.btn-loading.loading {
-  padding-right: 40px;
-}
-
-.btn-loading::after {
-  content: '';
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  border: 2px solid white;
-  border-top: 2px solid transparent;
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.btn-loading.loading::after {
-  opacity: 1;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: translateY(-50%) rotate(360deg); }
-}`,
-          type: 'css',
-        },
-        {
-          title: 'Кнопка с пульсацией',
-          prompt: 'Создай кнопку с пульсирующим эффектом при наведении',
-          description: 'Кнопка с анимацией пульсации',
-          preview: `.btn-pulse {
-  background: #ff4081;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  position: relative;
-  font-family: 'Roboto', sans-serif;
-}
-
-.btn-pulse:hover::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-  transform: translate(-50%, -50%) scale(1);
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
-}`,
-          type: 'css',
-        },
-        {
-          title: 'Кнопка с обводкой',
-          prompt: 'Создай минималистичную кнопку с обводкой и эффектом заполнения при наведении',
-          description: 'Кнопка с обводкой и заливкой при наведении',
-          preview: `.btn-outline {
-  background: transparent;
-  color: #3b82f6;
-  border: 2px solid #3b82f6;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s;
-  font-family: 'Roboto', sans-serif;
-}
-
-.btn-outline:hover {
-  background: #3b82f6;
-  color: white;
-}`,
-          type: 'css',
-        },
-      ],
-    },
-    {
-      category: 'Навигация',
-      icon: <FiLayout />,
-      items: [
-        {
-          title: 'Хлебные крошки',
-          prompt: 'Создай стиль для хлебных крошек с сепараторами и hover эффектами',
-          description: 'Навигационные хлебные крошки для сайта',
-          preview: `.breadcrumbs {
+.pricing-cards {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #666;
-  font-family: 'Roboto', sans-serif;
-}
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
+}`,
+          type: 'html',
+        },
+        {
+          title: 'Лендинг мероприятия',
+          prompt: `Создай продающий лендинг для онлайн-мероприятия с:
+- Таймером обратного отсчета
+- Формой регистрации
+- Спикером и программой
+- Секцией отзывов
+- Призывом к действию
 
-.breadcrumb-item {
-  text-decoration: none;
-  color: #666;
-  transition: color 0.3s;
-}
-
-.breadcrumb-item:hover {
-  color: #3b82f6;
-}
-
-.breadcrumb-item.active {
-  color: #000;
+Сделай энергичный дизайн с акцентами и анимациями.`,
+          description: 'Лендинг для конференции или вебинара',
+          preview: `.countdown-timer {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  font-size: 2rem;
   font-weight: bold;
 }
 
-.breadcrumb-separator {
-  color: #999;
+.speaker-card {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
 }`,
-          type: 'css',
+          type: 'html',
         },
         {
-          title: 'Бургер меню',
-          prompt: 'Создай анимированное бургер меню для мобильной навигации',
-          description: 'Иконка бургер меню с анимацией',
-          preview: `.burger-menu {
-  width: 30px;
-  height: 24px;
-  position: relative;
-  cursor: pointer;
+          title: 'Портфолио фрилансера',
+          prompt: `Создай минималистичное портфолио для фрилансера с полным HTML и CSS кодом. Включи:
+
+HTML СТРУКТУРА:
+- Шапку с навигацией по разделам
+- Секцию "О себе" с навыками
+- Галерею проектов в сетке
+- Процесс работы по шагам
+- Отзывы клиентов
+- Контактную форму
+- Футер
+
+CSS СТИЛИ (минималистичные):
+- Чистый дизайн с акцентом на контент
+- Современная типографика
+- Плавные анимации и переходы
+- Адаптивную верстку
+- Цветовую схему с акцентами
+- Сетку для проектов
+- Стили для формы
+
+ТРЕБОВАНИЯ:
+- Верни ПОЛНЫЙ HTML и CSS в одном ответе
+- CSS должен быть современным и чистым
+- Используй CSS Grid/Flexbox для layout
+- Добавь hover эффекты для интерактивности
+- Сделай адаптивным для мобильных`,
+          description: 'Минималистичное портфолио с полным кодом',
+          preview: `/* Пример CSS стилей */
+.portfolio {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
 }
 
-.burger-line {
-  width: 100%;
-  height: 3px;
-  background: #000;
-  position: absolute;
-  left: 0;
-  transition: all 0.3s;
-}
-
-.burger-line:nth-child(1) { top: 0; }
-.burger-line:nth-child(2) { top: 50%; transform: translateY(-50%); }
-.burger-line:nth-child(3) { bottom: 0; }
-
-.burger-menu.active .burger-line:nth-child(1) {
-  top: 50%;
-  transform: translateY(-50%) rotate(45deg);
-}
-
-.burger-menu.active .burger-line:nth-child(2) {
-  opacity: 0;
-}
-
-.burger-menu.active .burger-line:nth-child(3) {
-  bottom: 50%;
-  transform: translateY(50%) rotate(-45deg);
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
 }`,
-          type: 'css',
-        },
-        {
-          title: 'Вертикальное меню',
-          prompt: 'Создай вертикальное навигационное меню с hover эффектами',
-          description: 'Вертикальное меню для боковой панели',
-          preview: `.vertical-menu {
-  width: 200px;
-  font-family: 'Roboto', sans-serif;
-}
-
-.vertical-menu a {
-  display: block;
-  padding: 12px 16px;
-  color: #333;
-  text-decoration: none;
-  border-left: 4px solid transparent;
-  transition: all 0.3s;
-}
-
-.vertical-menu a:hover {
-  border-left: 4px solid #3b82f6;
-  background: #f0f0f0;
-  color: #3b82f6;
-}`,
-          type: 'css',
-        },
-        {
-          title: 'Табы навигации',
-          prompt: 'Создай стили для табов навигации с активным состоянием',
-          description: 'Табы с анимацией переключения',
-          preview: `.nav-tabs {
-  display: flex;
-  gap: 8px;
-  font-family: 'Roboto', sans-serif;
-}
-
-.nav-tab {
-  padding: 10px 20px;
-  background: #f0f0f0;
-  color: #333;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.nav-tab.active {
-  background: #3b82f6;
-  color: white;
-}
-
-.nav-tab:hover {
-  background: #e0e0ff;
-}`,
-          type: 'css',
+          type: 'html',
         },
       ],
     },
     {
-      category: 'Формы',
-      icon: <FiStar />,
+      category: 'Веб-приложения',
+      icon: <FiLayout />,
       items: [
         {
-          title: 'Input с валидацией',
-          prompt: 'Создай стиль для input поля с валидацией ошибок и успехом',
-          description: 'Поле ввода с индикацией валидации',
-          preview: `.input-validation {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
-  transition: border-color 0.3s;
-  font-family: 'Roboto', sans-serif;
+          title: 'Дашборд аналитики',
+          prompt: `Создай дашборд для аналитики с:
+- Статистическими карточками
+- Графиками и диаграммами
+- Таблицей данных
+- Фильтрами и поиском
+- Боковым меню навигации
+
+Используй темную тему с акцентными цветами для данных.`,
+          description: 'Админ-панель с аналитикой и графиками',
+          preview: `.dashboard-grid {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  min-height: 100vh;
 }
 
-.input-validation:focus {
-  outline: none;
-  border-color: #2196F3;
+.stat-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
 }
 
-.input-validation.valid {
-  border-color: #4CAF50;
-}
-
-.input-validation.invalid {
-  border-color: #f44336;
+.chart-container {
+  background: #1e1e2d;
+  border-radius: 12px;
+  padding: 24px;
 }`,
-          type: 'css',
+          type: 'html',
         },
         {
-          title: 'Кнопка submit',
-          prompt: 'Создай анимированную кнопку submit для формы',
-          description: 'Кнопка отправки формы с hover эффектом',
-          preview: `.submit-btn {
-  background: #2196F3;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background 0.3s, transform 0.3s;
-  font-family: 'Roboto', sans-serif;
+          title: 'Интернет-магазин',
+          prompt: `Создай главную страницу интернет-магазина с:
+- Каталогом товаров сеткой
+- Фильтрами по категориям
+- Корзиной покупок
+- Слайдером промо-акций
+- Блоком популярных товаров
+
+Сделай удобный UI для покупок.`,
+          description: 'E-commerce платформа с каталогом',
+          preview: `.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 30px;
 }
 
-.submit-btn:hover {
-  background: #1976D2;
-  transform: scale(1.05);
-}`,
-          type: 'css',
-        },
-        {
-          title: 'Чекбокс',
-          prompt: 'Создай кастомный стиль для чекбокса с анимацией',
-          description: 'Чекбокс с плавной анимацией выбора',
-          preview: `.custom-checkbox {
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  font-family: 'Roboto', sans-serif;
-}
-
-.custom-checkbox input {
-  display: none;
-}
-
-.custom-checkbox span {
-  width: 20px;
-  height: 20px;
-  border: 2px solid #3b82f6;
-  border-radius: 4px;
-  position: relative;
-  transition: all 0.3s;
-}
-
-.custom-checkbox input:checked + span {
-  background: #3b82f6;
-}
-
-.custom-checkbox input:checked + span::after {
-  content: '✔';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: white;
-  font-size: 12px;
-}`,
-          type: 'css',
-        },
-        {
-          title: 'Селект',
-          prompt: 'Создай стиль для выпадающего списка с hover эффектом',
-          description: 'Кастомный выпадающий список',
-          preview: `.custom-select {
-  position: relative;
-  width: 200px;
-  font-family: 'Roboto', sans-serif;
-}
-
-.custom-select select {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #ccc;
-  border-radius: 4px;
-  font-size: 16px;
+.cart-sidebar {
+  position: fixed;
+  right: -400px;
+  top: 0;
+  width: 400px;
+  height: 100vh;
   background: white;
-  appearance: none;
-  cursor: pointer;
-}
-
-.custom-select::after {
-  content: '▼';
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #666;
-}
-
-.custom-select select:focus {
-  border-color: #3b82f6;
-  outline: none;
+  transition: right 0.3s ease;
 }`,
-          type: 'css',
+          type: 'html',
+        },
+        {
+          title: 'Трекер задач',
+          prompt: `Создай приложение для управления задачами с:
+- Досками (To Do, In Progress, Done)
+- Drag & drop функциональностью
+- Формой создания задач
+- Фильтрами и метками
+- Статистикой продуктивности
+
+Реализуй Kanban-доску с возможностью перетаскивания.`,
+          description: 'Trello-like доска задач',
+          preview: `.kanban-board {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 20px;
+}
+
+.task-column {
+  min-width: 300px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.task-card {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}`,
+          type: 'html',
         },
       ],
     },
     {
-      category: 'Карточки',
+      category: 'Формы и авторизация',
+      icon: <FiUser />,
+      items: [
+        {
+          title: 'Форма регистрации',
+          prompt: `Создай современную форму регистрации с:
+- Полями: имя, email, пароль
+- Валидацией в реальном времени
+- Кнопкой социальных сетей
+- Ссылкой на логин
+- Анимацией загрузки
+
+Сделай UX-friendly форму с подсказками.`,
+          description: 'Форма регистрации с валидацией',
+          preview: `.auth-form {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 40px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+}
+
+.social-buttons {
+  display: flex;
+  gap: 12px;
+  margin: 20px 0;
+}`,
+          type: 'html',
+        },
+        {
+          title: 'Форма обратной связи',
+          prompt: `Создай форму обратной связи с:
+- Полями: имя, email, тема, сообщение
+- Валидацией email
+- Индикатором отправки
+- Подтверждением успешной отправки
+- Адаптивным дизайном
+
+Добавь микро-анимации для улучшения UX.`,
+          description: 'Контактная форма с валидацией',
+          preview: `.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.submit-btn {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}`,
+          type: 'html',
+        },
+        {
+          title: 'Форма оплаты',
+          prompt: `Создай безопасную форму оплаты с:
+- Полями для данных карты
+- Маской ввода номера карты
+- Выбором способа оплаты
+- Иконками платежных систем
+- Подтверждением платежа
+
+Сделай форму похожей на реальные платежные системы.`,
+          description: 'Форма для приема платежей',
+          preview: `.payment-form {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.card-input {
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 16px;
+}`,
+          type: 'html',
+        },
+        {
+          title: 'Форма входа',
+          prompt: `Создай минималистичную форму входа с:
+- Полями email и пароль
+- Чекбоксом "Запомнить меня"
+- Ссылкой восстановления пароля
+- Кнопками социальных сетей
+- Анимацией появления ошибок
+
+Используй чистый дизайн с акцентом на usability.`,
+          description: 'Логин форма с социальными кнопками',
+          preview: `.login-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}`,
+          type: 'html',
+        },
+      ],
+    },
+    {
+      category: 'Компоненты UI',
       icon: <FiGrid />,
       items: [
         {
-          title: 'Карточка продукта',
-          prompt: 'Создай стиль для карточки продукта с hover эффектом и тенью',
-          description: 'Карточка для интернет-магазина',
+          title: 'Навигационная панель',
+          prompt: `Создай современную навигационную панель с:
+- Логотипом и меню
+- Выпадающими списками
+- Кнопкой CTA
+- Адаптивным бургер-меню
+- Sticky позиционированием
+
+Сделай плавные анимации для ховеров.`,
+          description: 'Responsive навбар с выпадающими меню',
+          preview: `.navbar {
+  position: sticky;
+  top: 0;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+  padding: 0 40px;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}`,
+          type: 'html',
+        },
+        {
+          title: 'Карточка товара',
+          prompt: `Создай карточку товара для интернет-магазина с:
+- Изображением товара
+- Названием и ценой
+- Рейтингом звездами
+- Кнопкой "В корзину"
+- Ховер-эффектами
+
+Добавь микро-интеракции при наведении.`,
+          description: 'E-commerce карточка продукта',
           preview: `.product-card {
   background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  padding: 16px;
-  transition: all 0.3s;
-  font-family: 'Roboto', sans-serif;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  transition: transform 0.3s ease;
 }
 
 .product-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
 }`,
-          type: 'css',
+          type: 'html',
         },
         {
-          title: 'Карточка с изображением',
-          prompt: 'Создай карточку с масштабируемым изображением при наведении',
-          description: 'Карточка с анимацией изображения',
-          preview: `.image-card {
-  width: 300px;
-  overflow: hidden;
-  border-radius: 8px;
-  font-family: 'Roboto', sans-serif;
-}
+          title: 'Футер сайта',
+          prompt: `Создай комплексный футер с:
+- Логотипом и описанием
+- Ссылками по категориям
+- Социальными иконками
+- Формой подписки на рассылку
+- Копирайтом
 
-.image-card img {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.image-card:hover img {
-  transform: scale(1.1);
-}
-
-.image-card-content {
-  padding: 16px;
-}`,
-          type: 'css',
-        },
-        {
-          title: 'Карточка профиля',
-          prompt: 'Создай карточку профиля пользователя с аватаром и кнопкой',
-          description: 'Карточка для профиля пользователя',
-          preview: `.profile-card {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  text-align: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  font-family: 'Roboto', sans-serif;
-}
-
-.profile-card img {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  margin-bottom: 12px;
-}
-
-.profile-card button {
-  background: #3b82f6;
+Сделай его информативным и стильным.`,
+          description: 'Многосекционный футер',
+          preview: `.footer {
+  background: #1a1a2e;
   color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-}`,
-          type: 'css',
-        },
-      ],
-    },
-    {
-      category: 'Модальные окна',
-      icon: <FiMenu />,
-      items: [
-        {
-          title: 'Простое модальное окно',
-          prompt: 'Создай стиль для модального окна с анимацией появления',
-          description: 'Модальное окно с плавным появлением',
-          preview: `.modal {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  animation: modalAppear 0.3s forwards;
-  font-family: 'Roboto', sans-serif;
+  padding: 60px 0 30px;
 }
 
-@keyframes modalAppear {
-  to { transform: translate(-50%, -50%) scale(1); }
+.footer-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 40px;
 }`,
-          type: 'css',
+          type: 'html',
         },
         {
-          title: 'Модальное окно с затемнением',
-          prompt: 'Создай модальное окно с затемнением фона',
-          description: 'Модальное окно с эффектом затемнения',
-          preview: `.modal-overlay {
+          title: 'Галерея изображений',
+          prompt: `Создай адаптивную галерею изображений с:
+- Сеткой фотографий
+- Лайтбоксом при клике
+- Фильтрами по категориям
+- Ленивой загрузкой
+- Анимацией появления
+
+Реализуй masonry layout для фотографий.`,
+          description: 'Responsive галерея с лайтбоксом',
+          preview: `.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.lightbox {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: rgba(0,0,0,0.9);
+  display: none;
+}`,
+          type: 'html',
+        },
+      ],
+    },
+    {
+      category: 'Специальные страницы',
+      icon: <FiStar />,
+      items: [
+        {
+          title: 'Страница 404',
+          prompt: `Создай креативную страницу 404 с:
+- Забавной иллюстрацией
+- Сообщением об ошибке
+- Поиском по сайту
+- Ссылками на главные разделы
+- Анимацией
+
+Сделай ее полезной, а не просто сообщением об ошибке.`,
+          description: 'Креативная страница ошибки 404',
+          preview: `.error-page {
+  text-align: center;
+  padding: 100px 20px;
 }
 
-.modal-content {
-  background: white;
-  padding: 24px;
-  border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  font-family: 'Roboto', sans-serif;
+.error-illustration {
+  max-width: 400px;
+  margin: 0 auto 40px;
 }`,
-          type: 'css',
+          type: 'html',
+        },
+        {
+          title: 'Страница благодарности',
+          prompt: `Создай страницу благодарности после отправки формы с:
+- Сообщением успеха
+- Информацией о следующих шагах
+- Кнопкой возврата
+- Социальными шарингами
+- Анимацией подтверждения
+
+Сделай ее теплой и мотивирующей.`,
+          description: 'Страница после успешной отправки формы',
+          preview: `.success-page {
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+}`,
+          type: 'html',
+        },
+        {
+          title: 'Политика конфиденциальности',
+          prompt: `Создай страницу политики конфиденциальности с:
+- Структурированными разделами
+- Легко читаемым текстом
+- Навигацией по странице
+- Responsive дизайном
+- Профессиональным видом
+
+Сделай сложный контент легко усваиваемым.`,
+          description: 'Юридическая страница с навигацией',
+          preview: `.policy-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.section-nav {
+  position: sticky;
+  top: 100px;
+}`,
+          type: 'html',
+        },
+      ],
+    },
+    {
+      category: 'Бизнес-шаблоны',
+      icon: <FiTrendingUp />,
+      items: [
+        {
+          title: 'Корпоративный сайт',
+          prompt: `Создай корпоративный сайт компании с:
+- О компании и миссией
+- Секцией услуг
+- Портфолио работ
+- Командой специалистов
+- Контактной информацией
+
+Используй профессиональный дизайн с фирменными цветами.`,
+          description: 'Сайт для бизнеса с услугами',
+          preview: `.corporate-hero {
+  background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('office.jpg');
+  background-size: cover;
+  color: white;
+  padding: 150px 20px;
+}`,
+          type: 'html',
+        },
+        {
+          title: 'Сайт ресторана',
+          prompt: `Создай сайт для ресторана с:
+- Меню с категориями
+- Галереей блюд
+- Онлайн-бронированием
+- Отзывами клиентов
+- Контактной картой
+
+Сделай аппетитный дизайн с акцентами на еде.`,
+          description: 'Сайт ресторана с меню и бронированием',
+          preview: `.menu-category {
+  margin-bottom: 60px;
+}
+
+.dish-card {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+}`,
+          type: 'html',
+        },
+        {
+          title: 'Образовательная платформа',
+          prompt: `Создай лендинг для онлайн-курсов с:
+- Каталогом курсов
+- Преподавателями
+- Отзывами студентов
+- FAQ по обучению
+- Формой заявки
+
+Сделай образовательный и доверительный дизайн.`,
+          description: 'Платформа для онлайн-обучения',
+          preview: `.course-card {
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}`,
+          type: 'html',
         },
       ],
     },
@@ -628,171 +617,78 @@ function PromptTemplates() {
 
     const getPreviewHTML = (template) => {
       switch (template.title) {
-        case 'Неоновая кнопка':
+        case 'Лендинг SaaS продукта':
           return `
             <div class="preview-container">
-              <button class="btn-neon">Неоновая</button>
-            </div>
-          `;
-        case 'Градиентная кнопка':
-          return `
-            <div class="preview-container">
-              <button class="btn-gradient">Градиент</button>
-            </div>
-          `;
-        case '3D кнопка':
-          return `
-            <div class="preview-container">
-              <button class="btn-3d">3D Кнопка</button>
-            </div>
-          `;
-        case 'Кнопка с загрузкой':
-          return `
-            <div class="preview-container">
-              <button class="btn-loading">Загрузка</button>
-            </div>
-          `;
-        case 'Кнопка с пульсацией':
-          return `
-            <div class="preview-container">
-              <button class="btn-pulse">Пульсация</button>
-            </div>
-          `;
-        case 'Кнопка с обводкой':
-          return `
-            <div class="preview-container">
-              <button class="btn-outline">Обводка</button>
-            </div>
-          `;
-        case 'Хлебные крошки':
-          return `
-            <div class="preview-container">
-              <div class="breadcrumbs">
-                <a class="breadcrumb-item" href="javascript:void(0)">Главная</a>
-                <span class="breadcrumb-separator">/</span>
-                <a class="breadcrumb-item" href="javascript:void(0)">Категория</a>
-                <span class="breadcrumb-separator">/</span>
-                <span class="breadcrumb-item active">Страница</span>
+              <div class="hero-section">
+                <h1>Инновационный SaaS продукт</h1>
+                <p>Решаем ваши бизнес-задачи с помощью AI</p>
+                <button>Начать бесплатно</button>
               </div>
-            </div>
-          `;
-        case 'Бургер меню':
-          return `
-            <div class="preview-container">
-              <div class="burger-menu">
-                <div class="burger-line"></div>
-                <div class="burger-line"></div>
-                <div class="burger-line"></div>
-              </div>
-            </div>
-          `;
-        case 'Вертикальное меню':
-          return `
-            <div class="preview-container">
-              <div class="vertical-menu">
-                <a href="javascript:void(0)">Главная</a>
-                <a href="javascript:void(0)">О нас</a>
-                <a href="javascript:void(0)">Контакты</a>
-              </div>
-            </div>
-          `;
-        case 'Табы навигации':
-          return `
-            <div class="preview-container">
-              <div class="nav-tabs">
-                <div class="nav-tab active">Таб 1</div>
-                <div class="nav-tab">Таб 2</div>
-                <div class="nav-tab">Таб 3</div>
-              </div>
-            </div>
-          `;
-        case 'Input с валидацией':
-          return `
-            <div class="preview-container">
-              <input class="input-validation valid" type="text" placeholder="Введите текст" />
-            </div>
-          `;
-        case 'Кнопка submit':
-          return `
-            <div class="preview-container">
-              <button class="submit-btn">Отправить</button>
-            </div>
-          `;
-        case 'Чекбокс':
-          return `
-            <div class="preview-container">
-              <label class="custom-checkbox">
-                <input type="checkbox" checked />
-                <span></span>
-                Чекбокс
-              </label>
-            </div>
-          `;
-        case 'Селект':
-          return `
-            <div class="preview-container">
-              <div class="custom-select">
-                <select>
-                  <option>Опция 1</option>
-                  <option>Опция 2</option>
-                  <option>Опция 3</option>
-                </select>
-              </div>
-            </div>
-          `;
-        case 'Карточка продукта':
-          return `
-            <div class="preview-container">
-              <div class="product-card">
-                <h3>Продукт</h3>
-                <p>Описание продукта</p>
-              </div>
-            </div>
-          `;
-        case 'Карточка с изображением':
-          return `
-            <div class="preview-container">
-              <div class="image-card">
-                <img src="https://via.placeholder.com/300x200" alt="Placeholder" />
-                <div class="image-card-content">
-                  <h3>Карточка</h3>
-                  <p>Описание</p>
+              <div class="features-grid">
+                <div class="feature-card">
+                  <h3>🚀 Быстрая интеграция</h3>
+                  <p>Подключение за 5 минут</p>
+                </div>
+                <div class="feature-card">
+                  <h3>💡 Умный AI</h3>
+                  <p>Автоматизация процессов</p>
                 </div>
               </div>
             </div>
           `;
-        case 'Карточка профиля':
+        case 'Дашборд аналитики':
           return `
             <div class="preview-container">
-              <div class="profile-card">
-                <img src="https://via.placeholder.com/80" alt="Avatar" />
-                <h3>Пользователь</h3>
-                <button>Подписаться</button>
+              <div class="dashboard-grid">
+                <nav class="sidebar">Навигация</nav>
+                <main class="content">
+                  <div class="stat-cards">
+                    <div class="stat-card">Пользователи: 1,234</div>
+                    <div class="stat-card">Доход: $45,678</div>
+                  </div>
+                  <div class="chart-container">График аналитики</div>
+                </main>
               </div>
             </div>
           `;
-        case 'Простое модальное окно':
+        case 'Форма регистрации':
           return `
             <div class="preview-container">
-              <div class="modal">
-                <h3>Модальное окно</h3>
-                <p>Содержимое модального окна</p>
+              <div class="auth-form">
+                <h2>Создать аккаунт</h2>
+                <input type="text" placeholder="Имя">
+                <input type="email" placeholder="Email">
+                <input type="password" placeholder="Пароль">
+                <button>Зарегистрироваться</button>
+                <div class="social-buttons">
+                  <button>Google</button>
+                  <button>Facebook</button>
+                </div>
               </div>
             </div>
           `;
-        case 'Модальное окно с затемнением':
+        case 'Интернет-магазин':
           return `
             <div class="preview-container">
-              <div class="modal-overlay">
-                <div class="modal-content">
-                  <h3>Модальное окно</h3>
-                  <p>Содержимое</p>
+              <div class="product-grid">
+                <div class="product-card">
+                  <img src="https://via.placeholder.com/200" alt="Товар">
+                  <h3>Название товара</h3>
+                  <p>$99.99</p>
+                  <button>В корзину</button>
+                </div>
+                <div class="product-card">
+                  <img src="https://via.placeholder.com/200" alt="Товар">
+                  <h3>Другой товар</h3>
+                  <p>$149.99</p>
+                  <button>В корзину</button>
                 </div>
               </div>
             </div>
           `;
         default:
-          return '<div class="preview-container">Предпросмотр недоступен</div>';
+          return '<div class="preview-container">Предпросмотр шаблона</div>';
       }
     };
 
@@ -802,7 +698,7 @@ function PromptTemplates() {
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+          <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
           <style>
             * {
               margin: 0;
@@ -813,7 +709,7 @@ function PromptTemplates() {
               width: 100%;
               height: 100%;
               overflow: hidden;
-              font-family: 'Roboto', sans-serif;
+              font-family: 'Inter', sans-serif;
             }
             body { 
               margin: 0; 
@@ -822,133 +718,172 @@ function PromptTemplates() {
               justify-content: center; 
               align-items: center; 
               min-height: calc(100vh - 40px);
-              background: linear-gradient(135deg, #e0e7ff 0%, #c3e8fa 100%);
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             }
             .preview-container {
               display: flex;
-              flex-wrap: wrap;
-              gap: 15px;
-              justify-content: center;
-              align-items: center;
+              flex-direction: column;
+              gap: 20px;
               width: 100%;
-              max-width: 400px;
+              max-width: 500px;
               background: white;
-              border-radius: 12px;
+              border-radius: 20px;
               border: 1px solid #e2e8f0;
-              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-              padding: 20px;
-            }
-            a, button, input, select, label, .product-card, .image-card, .profile-card, .modal, .modal-overlay {
-              cursor: pointer;
-              transition: all 0.3s;
-            }
-            a:hover, button:hover, input:hover, select:hover, label:hover, .product-card:hover, .image-card:hover, .profile-card:hover {
-              opacity: 0.85;
-            }
-            a {
-              text-decoration: none;
+              box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+              padding: 30px;
+              overflow-y: auto;
+              max-height: 400px;
             }
             ${template.preview}
+            
+            /* Стили для предпросмотра компонентов */
+            .hero-section {
+              background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+              color: white;
+              padding: 60px 30px;
+              border-radius: 15px;
+              text-align: center;
+              margin-bottom: 20px;
+            }
+            
+            .feature-card {
+              background: #f8fafc;
+              padding: 20px;
+              border-radius: 10px;
+              border: 1px solid #e2e8f0;
+            }
+            
+            .auth-form {
+              display: flex;
+              flex-direction: column;
+              gap: 15px;
+            }
+            
+            .auth-form input {
+              padding: 12px 16px;
+              border: 2px solid #e2e8f0;
+              border-radius: 8px;
+              font-size: 16px;
+            }
+            
+            .auth-form button {
+              background: #3b82f6;
+              color: white;
+              border: none;
+              padding: 12px;
+              border-radius: 8px;
+              cursor: pointer;
+            }
+            
+            .social-buttons {
+              display: flex;
+              gap: 10px;
+            }
+            
+            .social-buttons button {
+              flex: 1;
+              background: #64748b;
+              color: white;
+              border: none;
+              padding: 10px;
+              border-radius: 6px;
+              cursor: pointer;
+            }
+            
+            .product-grid {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+            }
+            
+            .product-card {
+              background: white;
+              border: 1px solid #e2e8f0;
+              border-radius: 12px;
+              padding: 15px;
+              text-align: center;
+            }
+            
+            .product-card img {
+              width: 100%;
+              border-radius: 8px;
+              margin-bottom: 10px;
+            }
+            
+            .product-card button {
+              background: #10b981;
+              color: white;
+              border: none;
+              padding: 8px 16px;
+              border-radius: 6px;
+              cursor: pointer;
+              width: 100%;
+            }
+            
+            .dashboard-grid {
+              display: grid;
+              grid-template-columns: 200px 1fr;
+              gap: 20px;
+              height: 300px;
+            }
+            
+            .sidebar {
+              background: #1e293b;
+              color: white;
+              border-radius: 12px;
+              padding: 20px;
+            }
+            
+            .content {
+              display: flex;
+              flex-direction: column;
+              gap: 15px;
+            }
+            
+            .stat-cards {
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 15px;
+            }
+            
+            .stat-card {
+              background: #f1f5f9;
+              padding: 20px;
+              border-radius: 10px;
+              text-align: center;
+            }
+            
+            .chart-container {
+              background: #1e293b;
+              color: white;
+              padding: 20px;
+              border-radius: 12px;
+              flex: 1;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
           </style>
         </head>
         <body>
           ${getPreviewHTML(template)}
           <script>
-            // Prevent default navigation for links
-            document.querySelectorAll('a').forEach(link => {
-              link.setAttribute('href', 'javascript:void(0)');
-              link.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-              });
-            });
-
-            // Burger menu toggle
-            document.querySelectorAll('.burger-menu').forEach(menu => {
-              menu.addEventListener('click', function(e) {
-                e.stopPropagation();
-                this.classList.toggle('active');
-              });
-            });
-
-            // Loading button animation
-            document.querySelectorAll('.btn-loading').forEach(btn => {
+            // Добавляем базовую интерактивность для предпросмотра
+            document.querySelectorAll('button').forEach(btn => {
               btn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                this.classList.add('loading');
-                setTimeout(() => this.classList.remove('loading'), 2000);
+                this.style.opacity = '0.8';
+                setTimeout(() => this.style.opacity = '1', 150);
               });
             });
-
-            // 3D button animation
-            document.querySelectorAll('.btn-3d').forEach(btn => {
-              btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                this.classList.add('active');
-                setTimeout(() => this.classList.remove('active'), 200);
+            
+            document.querySelectorAll('input').forEach(input => {
+              input.addEventListener('focus', function() {
+                this.style.borderColor = '#3b82f6';
               });
-            });
-
-            // Navigation tabs
-            document.querySelectorAll('.nav-tab').forEach(tab => {
-              tab.addEventListener('click', function(e) {
-                e.stopPropagation();
-                document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
+              input.addEventListener('blur', function() {
+                this.style.borderColor = '#e2e8f0';
               });
-            });
-
-            // Checkboxes
-            document.querySelectorAll('.custom-checkbox input').forEach(checkbox => {
-              checkbox.addEventListener('change', function(e) {
-                e.stopPropagation();
-              });
-            });
-
-            // Select dropdowns
-            document.querySelectorAll('select').forEach(select => {
-              select.addEventListener('change', function(e) {
-                e.stopPropagation();
-              });
-            });
-
-            // Input validation simulation
-            document.querySelectorAll('.input-validation').forEach(input => {
-              input.addEventListener('input', function(e) {
-                e.stopPropagation();
-                const value = this.value;
-                this.classList.remove('valid', 'invalid');
-                if (value.length > 0) {
-                  this.classList.add(value.length > 3 ? 'valid' : 'invalid');
-                }
-              });
-            });
-
-            // Profile card button
-            document.querySelectorAll('.profile-card button').forEach(btn => {
-              btn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                this.textContent = this.textContent === 'Подписаться' ? 'Отписаться' : 'Подписаться';
-              });
-            });
-
-            // Simulate hover effects for cards
-            document.querySelectorAll('.product-card, .image-card, .profile-card').forEach(card => {
-              card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-4px)';
-                this.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.2)';
-              });
-              card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-              });
-            });
-
-            // Simulate modal animation
-            document.querySelectorAll('.modal').forEach(modal => {
-              setTimeout(() => {
-                modal.style.transform = 'translate(-50%, -50%) scale(1)';
-              }, 100);
             });
           </script>
         </body>
@@ -960,10 +895,10 @@ function PromptTemplates() {
         srcDoc={iframeContent}
         style={{
           width: '100%',
-          height: '350px',
+          height: '450px',
           border: 'none',
           borderRadius: '12px',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
+          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
           background: 'white',
         }}
         title="Preview"
@@ -978,7 +913,7 @@ function PromptTemplates() {
       <div className="templates-container">
         <div className="templates-header">
           <h1>Генератор промптов</h1>
-          <p>Готовые шаблоны промптов для быстрого старта</p>
+          <p>Готовые шаблоны для быстрого создания любых веб-проектов</p>
         </div>
 
         <div className="templates-grid">
@@ -1040,6 +975,8 @@ function PromptTemplates() {
             </div>
             <div className="preview-modal-body">
               <div className="preview-code">
+                <h4>Промпт:</h4>
+                <pre>{previewData.prompt}</pre>
                 <h4>CSS код:</h4>
                 <pre>{previewData.preview}</pre>
               </div>

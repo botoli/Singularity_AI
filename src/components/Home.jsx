@@ -14,6 +14,18 @@ function Home({ apiConfig, serverConfig }) {
       return;
     }
 
+    // Проверяем что apiConfig загружен
+    if (!apiConfig || !apiConfig.model) {
+      alert('Конфигурация API еще не загружена. Пожалуйста, подождите...');
+      return;
+    }
+
+    // Проверяем API ключ
+    if (!apiConfig.apiKey || apiConfig.apiKey.includes('VITE_GROQ_API_KEY')) {
+      alert('❌ API ключ не настроен. Проверьте переменную VITE_GROQ_API_KEY в .env файле');
+      return;
+    }
+
     setIsLoading(true);
 
     const requestBody = {
@@ -21,12 +33,27 @@ function Home({ apiConfig, serverConfig }) {
       messages: [
         {
           role: 'system',
-          content:
-            'Ты ассистент по веб-дизайну. Всегда возвращай полный, рабочий CSS-код в формате ```css\n[код]\n``` или HTML в формате ```html\n[код]\n``` для запросов, связанных с дизайном. Код должен быть адаптивным и функциональным. Если запрос общий, создай CSS для кнопки.',
+          content: `
+Ты — senior frontend engineer. Отвечай ТОЛЬКО рабочим кодом без пояснений.
+
+Всегда возвращай полный HTML/CSS в блоках:
+\`\`\`html
+...
+\`\`\`
+или
+\`\`\`css
+...
+\`\`\`
+
+ТРЕБОВАНИЯ:
+• HTML/CSS только, адаптив mobile-first
+• Семантика, aria, flex/grid, responsive states
+• Код чистый, готовый к вставке
+`,
         },
         {
           role: 'user',
-          content: idea,
+          content: `${idea}\n\nВАЖНО: Верни ПОЛНЫЙ РАБОЧИЙ КОД с адаптивным дизайном, современными практиками и доступностью.`,
         },
       ],
       max_completion_tokens: 2048,
@@ -38,12 +65,11 @@ function Home({ apiConfig, serverConfig }) {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000); // Увеличиваем таймаут
+      const timeoutId = setTimeout(() => controller.abort(), 45000);
 
       let response;
 
       if (apiConfig.useProxy) {
-        // Используем proxy для мобильных
         const proxyBody = {
           url: 'https://api.groq.com/openai/v1/chat/completions',
           body: requestBody,
@@ -61,7 +87,6 @@ function Home({ apiConfig, serverConfig }) {
           signal: controller.signal,
         });
       } else {
-        // Прямое подключение для десктопа
         response = await fetch(`${apiConfig.baseURL}${apiConfig.endpoint}`, {
           method: 'POST',
           headers: {
@@ -93,11 +118,9 @@ function Home({ apiConfig, serverConfig }) {
         content: data.choices[0].message.content,
       };
 
-      // Сохранение в localStorage для немедленного доступа
       const newMessages = [userMessage, assistantMessage];
       localStorage.setItem('currentChat', JSON.stringify(newMessages));
 
-      // Создаем ID для нового чата
       const chatId = 'local_' + Date.now();
       localStorage.setItem('currentChatId', chatId);
 
@@ -135,6 +158,21 @@ function Home({ apiConfig, serverConfig }) {
     }
   };
 
+  // Если apiConfig еще не загружен, показываем сообщение
+  if (!apiConfig) {
+    return (
+      <div className="home">
+        <div className="main-text-div">
+          <div className="main_text">
+            <span className="brand-text">Singularity AI</span>
+            <span className="subtitle">Твой персональный генератор веб-дизайна</span>
+          </div>
+          <div className="home-description">Загрузка конфигурации... Пожалуйста, подождите.</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="home">
       <div className="main-text-div">
@@ -157,12 +195,12 @@ function Home({ apiConfig, serverConfig }) {
           placeholder="Опиши элемент дизайна (например, 'неоновая кнопка в тёмной теме')..."
           maxLength={1000}
           rows={3}
-          disabled={isLoading}
+          disabled={isLoading || !apiConfig}
         />
         <button
           className={`send ${isLoading ? 'loading' : ''}`}
           onClick={handleSend}
-          disabled={isLoading || !idea.trim()}
+          disabled={isLoading || !idea.trim() || !apiConfig}
           aria-label="Отправить запрос">
           {isLoading ? <div className="spinner"></div> : <FiSend size={24} className="send-icon" />}
         </button>

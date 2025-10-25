@@ -1,23 +1,104 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import '../styles/App.scss';
-import { FiCode, FiSend, FiUser, FiLoader, FiCopy, FiEye, FiPlus } from 'react-icons/fi';
+import { FiCode, FiSend, FiUser, FiLoader, FiCopy, FiEye, FiPlus, FiX } from 'react-icons/fi';
 
 function MainChat({ apiConfig, serverConfig }) {
   const [messages, setMessages] = useState([]);
-  const [previews, setPreviews] = useState([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [previewMessageId, setPreviewMessageId] = useState(null);
+  const [activePreview, setActivePreview] = useState(null);
   const [activeTab, setActiveTab] = useState('chat');
   const [currentChatId, setCurrentChatId] = useState(null);
+  const [copiedMessageId, setCopiedMessageId] = useState(null);
+  const [stickyHeaders, setStickyHeaders] = useState({});
+  const [previewWidth, setPreviewWidth] = useState('50%');
+  const [isResizing, setIsResizing] = useState(false);
+
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
-  const previewRefs = useRef({});
+  const observerRef = useRef(null);
+  const previewSidebarRef = useRef(null);
+  const resizeStartX = useRef(0);
+  const resizeStartWidth = useRef(0);
   const location = useLocation();
 
-  // Load chat history and current chat
+  // Intersection Observer для sticky заголовков
+  useEffect(() => {
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        const updates = {};
+        entries.forEach((entry) => {
+          const messageId = entry.target.getAttribute('data-message-id');
+          updates[messageId] = !entry.isIntersecting;
+        });
+        setStickyHeaders((prev) => ({ ...prev, ...updates }));
+      },
+      {
+        rootMargin: '-70px 0px 0px 0px',
+        threshold: 0,
+      },
+    );
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, []);
+
+  // Наблюдаем за sticky трекерами
+  useEffect(() => {
+    if (observerRef.current) {
+      const trackers = document.querySelectorAll('.sticky-tracker');
+      trackers.forEach((tracker) => {
+        observerRef.current.observe(tracker);
+      });
+    }
+  }, [messages]);
+
+  // Ресайз предпросмотра
+  useEffect(() => {
+    const handleMouseMove = (e) => {
+      if (!isResizing) return;
+
+      const deltaX = resizeStartX.current - e.clientX;
+      const newWidth = Math.min(
+        Math.max(300, resizeStartWidth.current + deltaX),
+        window.innerWidth * 0.8,
+      );
+      setPreviewWidth(`${newWidth}px`);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+
+      if (previewSidebarRef.current) {
+        previewSidebarRef.current.classList.remove('resizing');
+      }
+    };
+
+    if (isResizing) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+
+      if (previewSidebarRef.current) {
+        previewSidebarRef.current.classList.add('resizing');
+      }
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
+
+  // Загрузка чата
   useEffect(() => {
     const loadChat = () => {
       try {
@@ -27,14 +108,6 @@ function MainChat({ apiConfig, serverConfig }) {
         if (currentChat) {
           const parsedMessages = JSON.parse(currentChat);
           setMessages(parsedMessages || []);
-
-          // Extract previews from assistant messages with code
-          const codeMessages = (parsedMessages || []).filter(
-            (msg) =>
-              msg.role === 'assistant' &&
-              (msg.content.includes('```css') || msg.content.includes('```html')),
-          );
-          setPreviews(codeMessages.map((msg) => ({ ...msg, previewId: msg.id || Date.now() })));
         }
 
         if (currentChatId) {
@@ -51,14 +124,14 @@ function MainChat({ apiConfig, serverConfig }) {
     loadChat();
   }, []);
 
-  // Handle preset prompt from navigation
+  // Preset prompt
   useEffect(() => {
     if (location.state?.presetPrompt) {
       setInput(location.state.presetPrompt);
     }
   }, [location.state]);
 
-  // Save current chat to history
+  // Сохранение чата
   useEffect(() => {
     if (messages.length > 0 && currentChatId) {
       try {
@@ -87,10 +160,10 @@ function MainChat({ apiConfig, serverConfig }) {
     }
   }, [messages, currentChatId]);
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll
   useEffect(() => {
     scrollToBottom();
-  }, [messages, previews, activeTab]);
+  }, [messages, activeTab]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({
@@ -99,25 +172,32 @@ function MainChat({ apiConfig, serverConfig }) {
     });
   };
 
-  // Create new chat
+  // Создание нового чата
   const createNewChat = () => {
     const newChatId = 'local_' + Date.now();
     setCurrentChatId(newChatId);
     setMessages([]);
-    setPreviews([]);
-    setPreviewMessageId(null);
+    setActivePreview(null);
     setInput('');
 
     localStorage.setItem('currentChatId', newChatId);
     localStorage.setItem('currentChat', JSON.stringify([]));
   };
 
-  // Send message to API
-  // Send message to API
+  // Начало ресайза
+  const startResize = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setIsResizing(true);
+    resizeStartX.current = e.clientX;
+    resizeStartWidth.current = previewSidebarRef.current?.offsetWidth || 600;
+  };
+
+  // Отправка сообщения
   const sendMessage = async (retryCount = 0) => {
     if (!input.trim() || isLoading) return;
 
-    // ДОБАВЬ ЭТУ ПРОВЕРКУ
     if (!apiConfig?.apiKey || apiConfig.apiKey.includes('VITE_GROQ_API_KEY')) {
       setError('Ошибка: API ключ не настроен. Проверьте конфигурацию.');
       return;
@@ -139,12 +219,30 @@ function MainChat({ apiConfig, serverConfig }) {
       const apiMessages = [
         {
           role: 'system',
-          content:
-            'Ты ассистент по веб-дизайну. Всегда возвращай полный, рабочий CSS-код в формате ```css\n[код]\n``` или HTML в формате ```html\n[код]\n``` для запросов, связанных с дизайном. Код должен быть адаптивным и функциональным. Если запрос общий, создай CSS для кнопки.',
+          content: `
+Ты — senior frontend engineer. Отвечай ТОЛЬКО рабочим кодом без пояснений.
+
+Всегда возвращай полный HTML/CSS в блоках:
+\`\`\`html
+...
+\`\`\`
+или
+\`\`\`css
+...
+\`\`\`
+
+ТРЕБОВАНИЯ:
+• HTML/CSS только, адаптив mobile-first
+• Семантика, aria, flex/grid, responsive states
+• Код чистый, готовый к вставке
+`,
         },
         ...updatedMessages.map((msg) => ({
           role: msg.role,
-          content: msg.content,
+          content:
+            msg.role === 'user'
+              ? `${msg.content}\n\nВАЖНО: Верни ПОЛНЫЙ РАБОЧИЙ КОД с адаптивным дизайном, современными практиками и доступностью.`
+              : msg.content,
         })),
       ];
 
@@ -153,24 +251,15 @@ function MainChat({ apiConfig, serverConfig }) {
         messages: apiMessages,
         max_completion_tokens: 2048,
         temperature: 0.7,
-        top_p: 0.9,
         stream: false,
       };
 
-      console.log('API Request:', JSON.stringify(requestBody, null, 2));
-      console.log('API Config:', {
-        useProxy: apiConfig.useProxy,
-        baseURL: apiConfig.baseURL,
-        endpoint: apiConfig.endpoint,
-      });
-
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 45000); // Увеличиваем таймаут
+      const timeoutId = setTimeout(() => controller.abort(), 45000);
 
       let response;
 
       if (apiConfig.useProxy) {
-        // Используем proxy для мобильных
         const proxyBody = {
           url: 'https://api.groq.com/openai/v1/chat/completions',
           body: requestBody,
@@ -178,8 +267,6 @@ function MainChat({ apiConfig, serverConfig }) {
             Authorization: `Bearer ${apiConfig.apiKey}`,
           },
         };
-
-        console.log('Using proxy request:', proxyBody);
 
         response = await fetch(apiConfig.baseURL, {
           method: 'POST',
@@ -190,9 +277,6 @@ function MainChat({ apiConfig, serverConfig }) {
           signal: controller.signal,
         });
       } else {
-        // Прямое подключение для десктопа
-        console.log('Using direct request to:', `${apiConfig.baseURL}${apiConfig.endpoint}`);
-
         response = await fetch(`${apiConfig.baseURL}${apiConfig.endpoint}`, {
           method: 'POST',
           headers: {
@@ -208,21 +292,13 @@ function MainChat({ apiConfig, serverConfig }) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('API Error Response:', {
-          status: response.status,
-          statusText: response.statusText,
-          errorText: errorText,
-        });
-
         if (retryCount < 2) {
-          console.log(`Retrying... attempt ${retryCount + 1}`);
           return sendMessage(retryCount + 1);
         }
         throw new Error(`API ошибка ${response.status}: ${errorText}`);
       }
 
       const data = await response.json();
-      console.log('API Success Response:', data);
 
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         throw new Error('Неверный формат ответа от API');
@@ -236,433 +312,159 @@ function MainChat({ apiConfig, serverConfig }) {
 
       const finalMessages = [...updatedMessages, assistantMessage];
       setMessages(finalMessages);
-
-      // Add to previews if contains code
-      if (
-        assistantMessage.content.includes('```css') ||
-        assistantMessage.content.includes('```html')
-      ) {
-        const newPreview = { ...assistantMessage, previewId: Date.now() };
-        setPreviews((prev) => [...prev, newPreview]);
-      }
     } catch (error) {
       console.error('Error sending message:', error);
-
       let errorMessage = 'Произошла неизвестная ошибка';
 
       if (error.name === 'AbortError') {
-        errorMessage =
-          'Превышено время ожидания ответа от сервера. Проверьте подключение к интернету.';
+        errorMessage = 'Превышено время ожидания ответа от сервера.';
       } else if (error.message === 'Failed to fetch') {
-        errorMessage = 'Не удалось подключиться к серверу. Проверьте интернет-соединение.';
-      } else if (error.message.includes('CORS') || error.message.includes('cors')) {
-        errorMessage =
-          'Ошибка CORS. Попробуйте отключить блокировщик рекламы или использовать другое подключение.';
+        errorMessage = 'Не удалось подключиться к серверу.';
       } else if (error.message.includes('401')) {
         errorMessage = 'Неверный API-ключ. Проверьте настройки API.';
-      } else if (error.message.includes('429')) {
-        errorMessage = 'Превышен лимит запросов. Попробуйте позже.';
-      } else if (error.message.includes('500')) {
-        errorMessage = 'Внутренняя ошибка сервера. Попробуйте еще раз.';
       } else {
         errorMessage = `Ошибка: ${error.message}`;
       }
 
       setError(errorMessage);
-
-      const errorMessageObj = {
-        role: 'assistant',
-        content: `Ошибка: ${error.message}`,
-        id: Date.now() + 1,
-      };
-
-      const errorMessages = [...updatedMessages, errorMessageObj];
-      setMessages(errorMessages);
-
-      // Auto-hide error after 5 seconds
       setTimeout(() => setError(null), 5000);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Format code with syntax highlighting
+  // Форматирование кода
   const formatCode = (content) => {
     if (!content) return '';
 
-    return content
-      .replace(
-        /```css\n([\s\S]*?)```/g,
-        '<div class="code-block"><div class="code-header">CSS</div><pre class="code-content"><code class="language-css">$1</code></pre></div>',
-      )
-      .replace(
-        /```html\n([\s\S]*?)```/g,
-        '<div class="code-block"><div class="code-header">HTML</div><pre class="code-content"><code class="language-html">$1</code></pre></div>',
-      )
-      .replace(
-        /```javascript\n([\s\S]*?)```/g,
-        '<div class="code-block"><div class="code-header">JavaScript</div><pre class="code-content"><code class="language-javascript">$1</code></pre></div>',
-      )
-      .replace(
-        /```js\n([\s\S]*?)```/g,
-        '<div class="code-block"><div class="code-header">JavaScript</div><pre class="code-content"><code class="language-javascript">$1</code></pre></div>',
-      )
-      .replace(/\n/g, '<br>');
+    const codeBlockMatch = content.match(/```(?:html|css|javascript|js)\n([\s\S]*?)```/);
+
+    if (codeBlockMatch) {
+      const codeType = content.match(/```(html|css|javascript|js)/)?.[1] || 'code';
+      const codeContent = codeBlockMatch[1];
+
+      return `
+        <div class="code-block">
+          <div class="code-header">${codeType.toUpperCase()}</div>
+          <pre class="code-content"><code class="language-${codeType}">${escapeHtml(
+        codeContent,
+      )}</code></pre>
+        </div>
+      `;
+    }
+
+    return `<div class="text-content">${escapeHtml(content)}</div>`;
   };
 
-  // Preview toggle
-  const togglePreview = (messageIndex) => {
-    setPreviewMessageId(previewMessageId === messageIndex ? null : messageIndex);
+  const escapeHtml = (text) => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   };
 
-  // Render preview content
-  const renderPreview = (content, index) => {
-    if (!content) return null;
+  // Создание предпросмотра
+  const createPreviewContent = (content) => {
+    if (!content) return '';
 
     const cssMatch = content.match(/```css\n([\s\S]*?)```/);
     const htmlMatch = content.match(/```html\n([\s\S]*?)```/);
 
-    if (cssMatch && htmlMatch) {
-      const cssCode = cssMatch[1];
-      const htmlCode = htmlMatch[1];
+    const htmlCode = htmlMatch
+      ? htmlMatch[1]
+      : '<div class="demo-container"><p>Демо контент</p></div>';
+    const cssCode = cssMatch ? cssMatch[1] : '';
 
-      // Создаем HTML для iframe с CSS и HTML
-      const iframeContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <style>
-              * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-                pointer-events: none;
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-              }
-              html, body {
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-              }
-              body { 
-                margin: 0; 
-                padding: 20px; 
-                display: flex; 
-                flex-wrap: wrap;
-                gap: 10px;
-                justify-content: center; 
-                align-items: center; 
-                min-height: calc(100vh - 40px);
-                background: #f5f5f5;
-                font-family: Arial, sans-serif;
-                overflow: hidden;
-              }
-              a, button, input, [onclick] {
-                pointer-events: none !important;
-                cursor: default !important;
-              }
-              ${cssCode}
-            </style>
-          </head>
-          <body>
-            ${htmlCode}
-            <script>
-              // Блокируем все события
-              document.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-              });
-              document.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                return false;
-              });
-              document.addEventListener('mouseup', function(e) {
-                e.preventDefault();
-                return false;
-              });
-              document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                return false;
-              });
-              // Блокируем все ссылки
-              var links = document.querySelectorAll('a');
-              links.forEach(function(link) {
-                link.setAttribute('href', 'javascript:void(0)');
-                link.addEventListener('click', function(e) {
-                  e.preventDefault();
-                  return false;
-                });
-              });
-              // Блокируем все кнопки
-              var buttons = document.querySelectorAll('button');
-              buttons.forEach(function(button) {
-                button.addEventListener('click', function(e) {
-                  e.preventDefault();
-                  return false;
-                });
-              });
-            </script>
-          </body>
-        </html>
-      `;
-
-      return (
-        <div className="preview-container" ref={(el) => (previewRefs.current[index] = el)}>
-          <iframe
-            srcDoc={iframeContent}
-            style={{
-              width: '100%',
-              height: '300px',
-              border: '1px solid #3b82f6',
-              borderRadius: '8px',
-              pointerEvents: 'none',
-            }}
-            title="Preview"
-            loading="lazy"
-            sandbox="allow-same-origin"
-          />
-        </div>
-      );
-    } else if (cssMatch) {
-      const cssCode = cssMatch[1];
-
-      // Создаем HTML для iframe только с CSS
-      const iframeContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <style>
-              * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-                pointer-events: none;
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-              }
-              html, body {
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-              }
-              body { 
-                margin: 0; 
-                padding: 20px; 
-                display: flex; 
-                flex-wrap: wrap;
-                gap: 10px;
-                justify-content: center; 
-                align-items: center; 
-                min-height: calc(100vh - 40px);
-                background: #f5f5f5;
-                font-family: Arial, sans-serif;
-                overflow: hidden;
-              }
-              a, button, input, [onclick] {
-                pointer-events: none !important;
-                cursor: default !important;
-              }
-              ${cssCode}
-              
-              /* Создаем демо-кнопки для CSS */
-              .demo-container {
-                display: flex;
-                flex-wrap: wrap;
-                gap: 10px;
-                justify-content: center;
-                align-items: center;
-                width: 100%;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="demo-container">
-              <button class="button" onclick="return false">Основная кнопка</button>
-              <button class="button" onclick="return false">Вторичная кнопка</button>
-              <button class="button" onclick="return false">Опасная кнопка</button>
-              <button class="button" onclick="return false">Успех</button>
-              <button class="button" onclick="return false">Маленькая</button>
-              <button class="button" onclick="return false">Большая</button>
-            </div>
-            <script>
-              // Блокируем все события
-              document.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-              });
-              document.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                return false;
-              });
-              document.addEventListener('mouseup', function(e) {
-                e.preventDefault();
-                return false;
-              });
-              document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                return false;
-              });
-              // Блокируем все кнопки
-              var buttons = document.querySelectorAll('button');
-              buttons.forEach(function(button) {
-                button.addEventListener('click', function(e) {
-                  e.preventDefault();
-                  return false;
-                });
-              });
-            </script>
-          </body>
-        </html>
-      `;
-
-      return (
-        <div className="preview-container" ref={(el) => (previewRefs.current[index] = el)}>
-          <iframe
-            srcDoc={iframeContent}
-            style={{
-              width: '100%',
-              height: '300px',
-              border: '1px solid #3b82f6',
-              borderRadius: '8px',
-              pointerEvents: 'none',
-            }}
-            title="CSS Preview"
-            loading="lazy"
-            sandbox="allow-same-origin"
-          />
-        </div>
-      );
-    } else if (htmlMatch) {
-      const htmlCode = htmlMatch[1];
-
-      // Создаем HTML для iframe только с HTML
-      const iframeContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <style>
-              * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-                pointer-events: none;
-                user-select: none;
-                -webkit-user-select: none;
-                -moz-user-select: none;
-                -ms-user-select: none;
-              }
-              html, body {
-                width: 100%;
-                height: 100%;
-                overflow: hidden;
-              }
-              body { 
-                margin: 0; 
-                padding: 20px; 
-                background: #f5f5f5;
-                font-family: Arial, sans-serif;
-                overflow: hidden;
-              }
-              a, button, input, [onclick] {
-                pointer-events: none !important;
-                cursor: default !important;
-              }
-            </style>
-          </head>
-          <body>
-            ${htmlCode
-              .replace(/<a /g, '<a onclick="return false" ')
-              .replace(/<button /g, '<button onclick="return false" ')}
-            <script>
-              // Блокируем все события
-              document.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                return false;
-              });
-              document.addEventListener('mousedown', function(e) {
-                e.preventDefault();
-                return false;
-              });
-              document.addEventListener('mouseup', function(e) {
-                e.preventDefault();
-                return false;
-              });
-              document.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-                return false;
-              });
-              // Блокируем все ссылки и кнопки
-              var links = document.querySelectorAll('a');
-              links.forEach(function(link) {
-                link.setAttribute('href', 'javascript:void(0)');
-                link.addEventListener('click', function(e) {
-                  e.preventDefault();
-                  return false;
-                });
-              });
-              var buttons = document.querySelectorAll('button');
-              buttons.forEach(function(button) {
-                button.addEventListener('click', function(e) {
-                  e.preventDefault();
-                  return false;
-                });
-              });
-            </script>
-          </body>
-        </html>
-      `;
-
-      return (
-        <div className="preview-container" ref={(el) => (previewRefs.current[index] = el)}>
-          <iframe
-            srcDoc={iframeContent}
-            style={{
-              width: '100%',
-              height: '300px',
-              border: '1px solid #3b82f6',
-              borderRadius: '8px',
-              pointerEvents: 'none',
-            }}
-            title="HTML Preview"
-            loading="lazy"
-            sandbox="allow-same-origin"
-          />
-        </div>
-      );
-    }
-    return null;
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <base target="_blank">
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          html, body { width: 100%; min-height: 100vh; }
+          .demo-container { 
+            padding: 20px; 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 10px; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+          }
+          ${cssCode}
+        </style>
+      </head>
+      <body>
+        ${htmlCode}
+        <script>
+          document.addEventListener('click', function(e) {
+            if (e.target.tagName === 'A') {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+          });
+          document.querySelectorAll('a').forEach(link => {
+            link.href = 'javascript:void(0)';
+          });
+        </script>
+      </body>
+      </html>
+    `;
   };
 
-  // Handle Enter key for sending messages
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
+  // Открытие предпросмотра
+  const openPreview = (messageId, content) => {
+    setActivePreview({ messageId, content });
+  };
+
+  // Закрытие предпросмотра
+  const closePreview = () => {
+    setActivePreview(null);
+  };
+
+  // Копирование кода
+  const copyToClipboard = async (content) => {
+    if (!content) return;
+
+    let codeToCopy = content;
+    const codeMatch = content.match(/```(?:html|css|javascript|js)\n([\s\S]*?)```/);
+    if (codeMatch) {
+      codeToCopy = codeMatch[1];
+    }
+
+    try {
+      await navigator.clipboard.writeText(codeToCopy);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+      alert('Не удалось скопировать код');
     }
   };
 
-  // Clear current chat
+  // Определение типа файла
+  const getFileType = (content) => {
+    if (!content) return 'Text';
+    if (content.includes('```html')) return 'HTML';
+    if (content.includes('```css')) return 'CSS';
+    if (content.includes('```javascript') || content.includes('```js')) return 'JavaScript';
+    return 'Text';
+  };
+
+  const getPreviewHint = (content) => {
+    const type = getFileType(content);
+    return type === 'HTML' || type === 'CSS' ? 'Доступен предпросмотр' : 'Только код';
+  };
+
+  // Очистка чата
   const clearChat = () => {
     if (!window.confirm('Вы уверены, что хотите очистить чат?')) {
       return;
     }
 
     setMessages([]);
-    setPreviews([]);
-    setPreviewMessageId(null);
+    setActivePreview(null);
 
-    // Update in history
     if (currentChatId) {
       const savedChats = JSON.parse(localStorage.getItem('chatHistory') || '[]');
       const updatedChats = savedChats.filter((chat) => chat.id !== currentChatId);
@@ -672,201 +474,203 @@ function MainChat({ apiConfig, serverConfig }) {
     localStorage.setItem('currentChat', JSON.stringify([]));
   };
 
-  // Copy code to clipboard
-  const copyToClipboard = async (content, button) => {
-    if (!content) return;
-
-    let codeToCopy = content;
-
-    // Extract code from markdown code blocks
-    const codeMatch = content.match(/```(?:css|html|javascript|js)\n([\s\S]*?)```/);
-    if (codeMatch) {
-      codeToCopy = codeMatch[1];
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
     }
-
-    try {
-      await navigator.clipboard.writeText(codeToCopy);
-
-      // Show success feedback
-      const originalHTML = button.innerHTML;
-      button.innerHTML = '<span style="color: #00ff88">✓</span>';
-      button.style.background = 'rgba(0, 255, 136, 0.2)';
-
-      setTimeout(() => {
-        button.innerHTML = originalHTML;
-        button.style.background = '';
-      }, 2000);
-    } catch (err) {
-      console.error('Failed to copy: ', err);
-      alert('Не удалось скопировать код');
-    }
-  };
-
-  // Determine file type
-  const getFileType = (content) => {
-    if (!content) return 'Text';
-    if (content.includes('```css')) return 'CSS';
-    if (content.includes('```javascript') || content.includes('```js')) return 'JavaScript';
-    if (content.includes('```html')) return 'HTML';
-    return 'Text';
   };
 
   return (
-    <div className="main-chat">
+    <div
+      className={`chat-with-preview ${activePreview ? 'with-preview' : ''}`}
+      style={{ '--preview-width': previewWidth }}>
       {error && (
         <div className="error-message" onClick={() => setError(null)}>
           {error}
         </div>
       )}
 
-      <div className="tabs">
-        <button
-          className={`tab ${activeTab === 'chat' ? 'active' : ''}`}
-          onClick={() => setActiveTab('chat')}>
-          Чат
-        </button>
-        <button
-          className={`tab ${activeTab === 'previews' ? 'active' : ''}`}
-          onClick={() => setActiveTab('previews')}>
-          Предпросмотры
-        </button>
-      </div>
-
-      <div className="chat-container" ref={messagesContainerRef}>
-        {activeTab === 'chat' ? (
-          messages.length === 0 ? (
-            <div className="welcome-message">
-              Привет! Опиши любой элемент дизайна, и я сгенерирую для него CSS или HTML код.
-            </div>
-          ) : (
-            <div className="messages-list">
-              {messages.map((msg, idx) => (
-                <div
-                  key={msg.id || idx}
-                  className={msg.role === 'user' ? 'sent_message' : 'ai_message'}>
-                  {msg.role === 'user' ? (
-                    <>
-                      <div className="message-avatar">
-                        <FiUser size={18} />
-                      </div>
-                      <div className="message-content">
-                        <div className="sent_message__text">{msg.content}</div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="message-header">
-                        <div className="message-avatar">
-                          <FiCode size={18} />
-                        </div>
-                        <div className="message-info">
-                          <div className="type_of_file">{getFileType(msg.content)}</div>
-                          {(getFileType(msg.content) === 'CSS' ||
-                            getFileType(msg.content) === 'HTML') && (
-                            <div className="message-actions">
-                              <button
-                                className="action-button copy-button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  copyToClipboard(msg.content, e.currentTarget);
-                                }}
-                                title="Копировать код">
-                                <FiCopy size={14} />
-                              </button>
-                              <button
-                                className="action-button preview-button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  togglePreview(idx);
-                                }}
-                                title="Предпросмотр">
-                                <FiEye size={14} />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div
-                        className="ai_message_text"
-                        dangerouslySetInnerHTML={{ __html: formatCode(msg.content) }}
-                      />
-                      {previewMessageId === idx && renderPreview(msg.content, idx)}
-                    </>
-                  )}
-                </div>
-              ))}
-              <div ref={messagesEndRef} className="scroll-anchor" />
-            </div>
-          )
-        ) : previews.length === 0 ? (
-          <div className="welcome-message">
-            📝 Пока нет сохранённых предпросмотров. Начни диалог на вкладке "Чат".
-          </div>
-        ) : (
-          <div className="previews-list">
-            {previews.map((msg, idx) => (
-              <div key={msg.previewId || idx} className="preview-item">
-                <div className="message-header">
-                  <div className="message-avatar">
-                    <FiCode size={18} />
-                  </div>
-                  <div className="message-info">
-                    <div className="type_of_file">{getFileType(msg.content)}</div>
-                    <div className="message-actions">
-                      <button
-                        className="action-button copy-button"
-                        onClick={(e) => copyToClipboard(msg.content, e.currentTarget)}
-                        title="Копировать код">
-                        <FiCopy size={14} />
-                      </button>
-                      <button
-                        className="action-button preview-button"
-                        onClick={() => togglePreview(idx)}
-                        title="Предпросмотр">
-                        <FiEye size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className="ai_message_text"
-                  dangerouslySetInnerHTML={{ __html: formatCode(msg.content) }}
-                />
-                {previewMessageId === idx && renderPreview(msg.content, idx)}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {activeTab === 'chat' && (
-        <div className="input-wrapper_chat">
-          <textarea
-            className="input_prompt"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Опиши элемент дизайна (например, 'неоновая кнопка с градиентом')..."
-            maxLength={1000}
-            rows={3}
-            disabled={isLoading}
-          />
+      <div className="chat-content" ref={messagesContainerRef}>
+        <div className="tabs">
           <button
-            className={`send-button ${isLoading ? 'loading' : ''}`}
-            onClick={sendMessage}
-            disabled={isLoading || !input.trim()}>
-            {isLoading ? <FiLoader className="spin" size={20} /> : <FiSend size={20} />}
+            className={`tab ${activeTab === 'chat' ? 'active' : ''}`}
+            onClick={() => setActiveTab('chat')}>
+            Чат
           </button>
         </div>
-      )}
 
-      <div className="chat-controls">
-        <button className="new-chat-button" onClick={createNewChat}>
-          <FiPlus size={16} /> Новый чат
-        </button>
-        <button className="clear-chat-button" onClick={clearChat}>
-          🗑️ Очистить чат
-        </button>
+        <div className="chat-container">
+          {activeTab === 'chat' ? (
+            messages.length === 0 ? (
+              <div className="welcome-message">
+                Привет! Опиши любой элемент дизайна, и я сгенерирую для него CSS или HTML код.
+              </div>
+            ) : (
+              <div className="messages-list">
+                {messages.map((msg, idx) => (
+                  <div
+                    key={msg.id || idx}
+                    className={msg.role === 'user' ? 'sent_message' : 'ai_message'}>
+                    {msg.role === 'user' ? (
+                      <>
+                        <div className="message-avatar">
+                          <FiUser size={18} />
+                        </div>
+                        <div className="message-content">
+                          <div className="sent_message__text">{msg.content}</div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Трекер для отслеживания видимости */}
+                        <div className="sticky-tracker" data-message-id={msg.id} />
+
+                        {/* Sticky заголовок */}
+                        <div
+                          className={`message-header-sticky ${
+                            stickyHeaders[msg.id] ? 'visible' : ''
+                          }`}>
+                          <div className="sticky-header-content">
+                            <div className="header-left">
+                              <div className="message-avatar">
+                                <FiCode size={18} />
+                              </div>
+                              <div className="message-info">
+                                <div className="type_of_file">{getFileType(msg.content)}</div>
+                                <div className="message-preview">{getPreviewHint(msg.content)}</div>
+                              </div>
+                            </div>
+                            <div className="message-actions">
+                              <button
+                                className={`action-button copy-button ${
+                                  copiedMessageId === msg.id ? 'copied' : ''
+                                }`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  copyToClipboard(msg.content);
+                                  setCopiedMessageId(msg.id);
+                                  setTimeout(() => setCopiedMessageId(null), 2000);
+                                }}>
+                                <FiCopy size={16} />
+                                {copiedMessageId === msg.id ? 'Скопировано!' : 'Копировать'}
+                              </button>
+
+                              {(getFileType(msg.content) === 'HTML' ||
+                                getFileType(msg.content) === 'CSS') && (
+                                <button
+                                  className={`action-button preview-button ${
+                                    activePreview?.messageId === msg.id ? 'preview-active' : ''
+                                  }`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openPreview(msg.id, msg.content);
+                                  }}>
+                                  <FiEye size={16} />
+                                  Предпросмотр
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Основной контент сообщения */}
+                        <div className="message-content">
+                          <div
+                            className="ai_message_text"
+                            dangerouslySetInnerHTML={{ __html: formatCode(msg.content) }}
+                          />
+
+                          <div className="inline-actions">
+                            <button
+                              className="action-button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                copyToClipboard(msg.content);
+                                setCopiedMessageId(msg.id);
+                                setTimeout(() => setCopiedMessageId(null), 2000);
+                              }}>
+                              <FiCopy size={14} />
+                              Копировать код
+                            </button>
+
+                            {(getFileType(msg.content) === 'HTML' ||
+                              getFileType(msg.content) === 'CSS') && (
+                              <button
+                                className="action-button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openPreview(msg.id, msg.content);
+                                }}>
+                                <FiEye size={14} />
+                                Открыть предпросмотр
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+                <div ref={messagesEndRef} className="scroll-anchor" />
+              </div>
+            )
+          ) : null}
+        </div>
+
+        {activeTab === 'chat' && (
+          <div className="input-wrapper_chat">
+            <textarea
+              className="input_prompt"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Опиши элемент дизайна (например, 'неоновая кнопка с градиентом')..."
+              maxLength={1000}
+              rows={3}
+              disabled={isLoading}
+            />
+            <button
+              className={`send-button ${isLoading ? 'loading' : ''}`}
+              onClick={sendMessage}
+              disabled={isLoading || !input.trim()}>
+              {isLoading ? <FiLoader className="spin" size={20} /> : <FiSend size={20} />}
+            </button>
+          </div>
+        )}
+
+        <div className="chat-controls">
+          <button className="new-chat-button" onClick={createNewChat}>
+            <FiPlus size={16} /> Новый чат
+          </button>
+          <button className="clear-chat-button" onClick={clearChat}>
+            🗑️ Очистить чат
+          </button>
+        </div>
+      </div>
+
+      {/* Правая панель предпросмотра */}
+      <div
+        className={`preview-sidebar ${activePreview ? 'active' : ''}`}
+        ref={previewSidebarRef}
+        style={{ width: previewWidth }}
+        onMouseDown={startResize}>
+        <div className="preview-header">
+          <h3>Предпросмотр кода</h3>
+          <button className="preview-close" onClick={closePreview}>
+            <FiX size={18} /> Закрыть
+          </button>
+        </div>
+        <div className="preview-content">
+          {activePreview && (
+            <iframe
+              srcDoc={createPreviewContent(activePreview.content)}
+              title="Code Preview"
+              loading="lazy"
+              sandbox="allow-scripts allow-same-origin"
+            />
+          )}
+        </div>
       </div>
     </div>
   );

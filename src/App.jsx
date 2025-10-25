@@ -38,14 +38,14 @@ const getApiConfig = () => {
       resolve({
         baseURL: baseURL,
         endpoint: useProxy ? '' : '/chat/completions',
-        model: 'llama-3.3-70b-versatile',
+        model: 'Llama-3.3-70B-versatile',
         apiKey: apiKey,
         useProxy: useProxy,
         headers: {
           'Content-Type': 'application/json',
         },
       });
-    }, 500);
+    }, 0);
   });
 };
 
